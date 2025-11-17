@@ -248,7 +248,7 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
           <div className="absolute w-full h-10 top-0 left-0 px-2 z-50">
             <div className="relative h-10 bg-[url(/fill-17.svg)] bg-[100%_100%]">
               {/* Network Signal - CSS bars */}
-              <div className="absolute top-[18px] right-[76px] flex space-x-0.5">
+              <div className="absolute top-[14px] right-[76px] flex space-x-0.5 items-end">
                 <div className="w-1 h-2 bg-white rounded-sm"></div>
                 <div className="w-1 h-2.5 bg-white rounded-sm"></div>
                 <div className="w-1 h-3 bg-white rounded-sm"></div>
@@ -256,16 +256,16 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
               </div>
 
               {/* WiFi Icon - CSS curved lines */}
-              <div className="absolute top-[18px] right-[53px] w-4 h-3">
+              <div className="absolute top-[16px] right-[53px] w-4 h-3">
                 <div className="absolute inset-0">
-                  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-2 h-1 border-t-2 border-white rounded-t-full"></div>
-                  <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 w-3 h-1.5 border-t-2 border-white rounded-t-full"></div>
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-2 h-1 border-b-2 border-white rounded-b-full"></div>
+                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-3 h-1.5 border-b-2 border-white rounded-b-full"></div>
                 </div>
               </div>
 
               {/* Battery Icon - CSS rectangle with fill */}
-              <div className="absolute top-[18px] right-[24px] w-[25px] h-[11px]">
+              <div className="absolute top-[14px] right-[24px] w-[25px] h-[11px]">
                 <div className="relative w-full h-full">
                   {/* Battery outline */}
                   <div className="absolute top-0 left-0 w-[22px] h-[11px] border border-white rounded-sm bg-transparent"></div>
