@@ -19,6 +19,8 @@ export interface PassengerDetails {
   gender: string;
   email: string;
   phoneNumber: string;
+  boardingPoint: string;
+  deboardingPoint: string;
   subscribeToUpdates: boolean;
   receiveAlerts: boolean;
 }

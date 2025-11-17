@@ -96,8 +96,8 @@ function AppContent() {
       const booking: BookingDetails = {
         route: selectedRoute,
         passenger: details,
-        boardingPoint: 'Berger Bus Stop',
-        deboardingPoint: 'Lekki Phase 1 Terminal',
+        boardingPoint: details.boardingPoint,
+        deboardingPoint: details.deboardingPoint,
         date: selectedDate || new Date().toISOString().split('T')[0],
         totalFare: selectedRoute.price
       };

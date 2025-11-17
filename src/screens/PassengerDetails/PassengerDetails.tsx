@@ -31,21 +31,26 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
     gender: '',
     email: userProfile.email,
     phoneNumber: userProfile.phoneNumber,
+    boardingPoint: '',
+    deboardingPoint: '',
     subscribeToUpdates: false,
     receiveAlerts: true
   });
+
+  // Get available stops from the route
+  const availableStops = selectedRoute.stops || [];
 
   const handleInputChange = (field: keyof PassengerDetailsType, value: string | boolean) => {
     setDetails(prev => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = () => {
-    if (details.name && details.age && details.gender && details.email && details.phoneNumber) {
+    if (details.name && details.age && details.gender && details.email && details.phoneNumber && details.boardingPoint && details.deboardingPoint) {
       onContinue(details);
     }
   };
 
-  const isFormValid = details.name && details.age && details.gender && details.email && details.phoneNumber;
+  const isFormValid = details.name && details.age && details.gender && details.email && details.phoneNumber && details.boardingPoint && details.deboardingPoint;
 
   return (
     <MobileLayout
@@ -142,6 +147,36 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
                   onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
                   placeholder="Enter phone number"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pick-up Location *
+                </label>
+                <Select
+                  value={details.boardingPoint}
+                  onChange={(e) => handleInputChange('boardingPoint', e.target.value)}
+                >
+                  <option value="">Select pick-up location</option>
+                  {availableStops.map((stop) => (
+                    <option key={stop} value={stop}>{stop}</option>
+                  ))}
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Drop-off Location *
+                </label>
+                <Select
+                  value={details.deboardingPoint}
+                  onChange={(e) => handleInputChange('deboardingPoint', e.target.value)}
+                >
+                  <option value="">Select drop-off location</option>
+                  {availableStops.map((stop) => (
+                    <option key={stop} value={stop}>{stop}</option>
+                  ))}
+                </Select>
               </div>
 
               <div className="space-y-3 pt-4 border-t">
