@@ -38,7 +38,41 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
   });
 
   // Get available stops from the route
-  const availableStops = selectedRoute.stops || [];
+  const allStops = selectedRoute.stops || [];
+
+  // Define stop filtering logic based on the route
+  const getPickupStops = () => {
+    if (allStops.length === 0) return [];
+
+    // Find the indices of the boundary stops
+    const bergerIndex = allStops.findIndex(stop => stop.includes('Berger'));
+    const iyanaOworoIndex = allStops.findIndex(stop => stop.includes('Iyana Oworo'));
+
+    if (bergerIndex !== -1 && iyanaOworoIndex !== -1) {
+      // Return stops from Berger to Iyana Oworo (inclusive)
+      return allStops.slice(bergerIndex, iyanaOworoIndex + 1);
+    }
+
+    return allStops;
+  };
+
+  const getDropOffStops = () => {
+    if (allStops.length === 0) return [];
+
+    // Find the indices of the boundary stops
+    const bonnyCampIndex = allStops.findIndex(stop => stop.includes('Bonny Camp'));
+    const lekkiPhase1Index = allStops.findIndex(stop => stop.includes('Lekki Phase 1'));
+
+    if (bonnyCampIndex !== -1 && lekkiPhase1Index !== -1) {
+      // Return stops from Bonny Camp to Lekki Phase 1 (inclusive)
+      return allStops.slice(bonnyCampIndex, lekkiPhase1Index + 1);
+    }
+
+    return allStops;
+  };
+
+  const pickupStops = getPickupStops();
+  const dropOffStops = getDropOffStops();
 
   const handleInputChange = (field: keyof PassengerDetailsType, value: string | boolean) => {
     setDetails(prev => ({ ...prev, [field]: value }));
@@ -158,7 +192,7 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
                   onChange={(e) => handleInputChange('boardingPoint', e.target.value)}
                 >
                   <option value="">Select pick-up location</option>
-                  {availableStops.map((stop) => (
+                  {pickupStops.map((stop) => (
                     <option key={stop} value={stop}>{stop}</option>
                   ))}
                 </Select>
@@ -173,7 +207,7 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
                   onChange={(e) => handleInputChange('deboardingPoint', e.target.value)}
                 >
                   <option value="">Select drop-off location</option>
-                  {availableStops.map((stop) => (
+                  {dropOffStops.map((stop) => (
                     <option key={stop} value={stop}>{stop}</option>
                   ))}
                 </Select>
