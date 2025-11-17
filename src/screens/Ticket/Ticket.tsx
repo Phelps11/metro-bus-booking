@@ -130,7 +130,7 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
                 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Deboarding Point</span>
-                  <span className="font-medium">Lekki Phase 1</span>
+                  <span className="font-medium">{ticket.deboardingPoint}</span>
                 </div>
                 
                 <div className="flex justify-between">
