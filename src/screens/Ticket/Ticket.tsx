@@ -4,6 +4,7 @@ import { MobileLayout } from '../../components/Layout/MobileLayout';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { Ticket as TicketType } from '../../types';
+import { createDateFromString } from '../../utils/dateUtils';
 
 interface TicketProps {
   ticket: TicketType;
@@ -101,11 +102,11 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
                   {ticket.boardingTime}
                 </div>
                 <div className="text-lg text-gray-600">
-                  {new Date(ticket.date).toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {createDateFromString(ticket.date).toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}
                 </div>
               </div>
