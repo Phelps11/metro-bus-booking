@@ -34,6 +34,35 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
   const [addAmount, setAddAmount] = useState('');
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [availableBuses, setAvailableBuses] = useState<Route[]>([]);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [batteryLevel, setBatteryLevel] = useState(100);
+
+  // Update clock every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Get battery level
+  useEffect(() => {
+    const getBatteryLevel = async () => {
+      if ('getBattery' in navigator) {
+        try {
+          const battery = await (navigator as any).getBattery();
+          setBatteryLevel(Math.round(battery.level * 100));
+
+          battery.addEventListener('levelchange', () => {
+            setBatteryLevel(Math.round(battery.level * 100));
+          });
+        } catch (error) {
+          console.log('Battery API not supported');
+        }
+      }
+    };
+    getBatteryLevel();
+  }, []);
 
   // Set default date to next working day
   useEffect(() => {
@@ -240,15 +269,21 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
                 <div className="relative w-full h-full">
                   {/* Battery outline */}
                   <div className="absolute top-0 left-0 w-[22px] h-[11px] border border-white rounded-sm bg-transparent"></div>
-                  {/* Battery fill (80% charged) */}
-                  <div className="absolute top-[1px] left-[1px] w-[17px] h-[9px] bg-white rounded-sm"></div>
+                  {/* Battery fill - dynamic based on battery level */}
+                  <div
+                    className="absolute top-[1px] left-[1px] h-[9px] bg-white rounded-sm transition-all duration-300"
+                    style={{
+                      width: `${Math.max(1, (batteryLevel / 100) * 20)}px`,
+                      backgroundColor: batteryLevel <= 20 ? '#ef4444' : 'white'
+                    }}
+                  ></div>
                   {/* Battery tip */}
                   <div className="absolute top-[3px] right-0 w-[2px] h-[5px] bg-white rounded-r-sm"></div>
                 </div>
               </div>
 
               <div className="absolute top-[13px] left-[24px] [font-family:'Satoshi-Italic',Helvetica] font-normal italic text-white text-[15px] tracking-[0.07px] leading-[normal]">
-                9:41
+                {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })}
               </div>
             </div>
           </div>
