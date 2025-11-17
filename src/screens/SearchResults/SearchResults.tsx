@@ -8,12 +8,13 @@ import { Route } from '../../types';
 
 interface SearchResultsProps {
   onBack: () => void;
-  onSelectRoute: (route: Route) => void;
+  onSelectRoute: (route: Route, date?: string) => void;
+  selectedDate?: string;
   onHome?: () => void;
   onNavigate?: (screen: string) => void;
 }
 
-export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRoute, onHome, onNavigate }) => {
+export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRoute, selectedDate, onHome, onNavigate }) => {
   const { searchResults } = useApp();
 
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
@@ -219,7 +220,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
               {/* Select Button */}
               <div className="mt-4 pt-3 border-t">
                 <Button
-                  onClick={() => onSelectRoute(route)}
+                  onClick={() => onSelectRoute(route, selectedDate)}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-2"
                 >
                   Select Bus

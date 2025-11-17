@@ -404,7 +404,7 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
                       key={bus.id}
                       onClick={() => {
                         setSearchResults([bus]);
-                        onNavigate('search-results');
+                        onNavigate('search-results', { date: searchForm.date });
                       }}
                       className="w-full p-3 rounded border border-gray-200 hover:border-oxford-blue hover:bg-blue-50 transition-colors text-left"
                     >

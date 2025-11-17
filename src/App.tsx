@@ -26,6 +26,7 @@ function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>(['login']);
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>('');
   const [bookingDetails, setBookingDetails] = useState<BookingDetails | null>(null);
   const [currentTicket, setCurrentTicket] = useState<TicketType | null>(null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
@@ -42,17 +43,20 @@ function AppContent() {
 
   const handleNavigation = (screen: string, data?: any) => {
     const newScreen = screen as Screen;
-    
+
     // Add current screen to history if it's not already the same as the new screen
     if (currentScreen !== newScreen) {
       setNavigationHistory(prev => [...prev, currentScreen]);
     }
-    
+
     setCurrentScreen(newScreen);
-    
+
     if (data) {
       if (screen === 'passenger-details') {
-        setSelectedRoute(data);
+        setSelectedRoute(data.route);
+        setSelectedDate(data.date || new Date().toISOString().split('T')[0]);
+      } else if (screen === 'search-results' && data.date) {
+        setSelectedDate(data.date);
       } else if (screen === 'subscription-payment') {
         setSubscriptionData(data);
       } else if (screen === 'hybrid-booking') {
@@ -80,8 +84,9 @@ function AppContent() {
     setNavigationHistory(['home']);
   };
 
-  const handleRouteSelection = (route: Route) => {
+  const handleRouteSelection = (route: Route, date?: string) => {
     setSelectedRoute(route);
+    setSelectedDate(date || new Date().toISOString().split('T')[0]);
     setCurrentScreen('passenger-details');
     setNavigationHistory(prev => [...prev, currentScreen]);
   };
@@ -93,7 +98,7 @@ function AppContent() {
         passenger: details,
         boardingPoint: 'Berger Bus Stop',
         deboardingPoint: 'Lekki Phase 1 Terminal',
-        date: new Date().toISOString().split('T')[0],
+        date: selectedDate || new Date().toISOString().split('T')[0],
         totalFare: selectedRoute.price
       };
       setBookingDetails(booking);
@@ -197,6 +202,7 @@ function AppContent() {
           <SearchResults
             onBack={handleBackNavigation}
             onSelectRoute={handleRouteSelection}
+            selectedDate={selectedDate}
             onNavigate={handleNavigation}
             onHome={handleHomeNavigation}
           />
