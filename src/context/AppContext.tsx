@@ -37,7 +37,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       if (session?.user) {
         const { data: userData, error } = await supabase
-          .from('users')
+          .from('user_profiles')
           .select('*')
           .eq('id', session.user.id)
           .maybeSingle();
@@ -48,7 +48,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
             phoneNumber: userData.phone_number || '',
             email: userData.email,
             emergencyContact: userData.emergency_contact || '',
-            preferredRoutes: userData.preferred_routes || [],
+            preferredRoutes: [],
             subscriptions: [],
             walletBalance: userData.wallet_balance || 0
           });
@@ -68,7 +68,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       (async () => {
         if (session?.user) {
           const { data: userData, error } = await supabase
-            .from('users')
+            .from('user_profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
@@ -79,7 +79,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
               phoneNumber: userData.phone_number || '',
               email: userData.email,
               emergencyContact: userData.emergency_contact || '',
-              preferredRoutes: userData.preferred_routes || [],
+              preferredRoutes: [],
               subscriptions: [],
               walletBalance: userData.wallet_balance || 0
             });

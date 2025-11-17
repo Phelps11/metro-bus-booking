@@ -139,9 +139,8 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
                 <Input
                   type="tel"
                   value={details.phoneNumber}
-                  readOnly
-                  disabled
-                  className="bg-gray-50 cursor-not-allowed"
+                  onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                  placeholder="Enter phone number"
                 />
               </div>
 
