@@ -44,9 +44,13 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
   const getPickupStops = () => {
     if (allStops.length === 0) return [];
 
-    // Find the indices of the boundary stops
-    const bergerIndex = allStops.findIndex(stop => stop.includes('Berger'));
-    const iyanaOworoIndex = allStops.findIndex(stop => stop.includes('Iyana Oworo'));
+    // Find the indices of the boundary stops (handle variations in naming)
+    const bergerIndex = allStops.findIndex(stop =>
+      stop.toLowerCase().includes('berger')
+    );
+    const iyanaOworoIndex = allStops.findIndex(stop =>
+      stop.toLowerCase().replace(/[-\s]/g, '').includes('iyanaoworo')
+    );
 
     if (bergerIndex !== -1 && iyanaOworoIndex !== -1) {
       // Return stops from Berger to Iyana Oworo (inclusive)
@@ -59,9 +63,13 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
   const getDropOffStops = () => {
     if (allStops.length === 0) return [];
 
-    // Find the indices of the boundary stops
-    const bonnyCampIndex = allStops.findIndex(stop => stop.includes('Bonny Camp'));
-    const lekkiPhase1Index = allStops.findIndex(stop => stop.includes('Lekki Phase 1'));
+    // Find the indices of the boundary stops (handle variations in naming)
+    const bonnyCampIndex = allStops.findIndex(stop =>
+      stop.toLowerCase().includes('bonny camp')
+    );
+    const lekkiPhase1Index = allStops.findIndex(stop =>
+      stop.toLowerCase().includes('lekki phase 1')
+    );
 
     if (bonnyCampIndex !== -1 && lekkiPhase1Index !== -1) {
       // Return stops from Bonny Camp to Lekki Phase 1 (inclusive)
