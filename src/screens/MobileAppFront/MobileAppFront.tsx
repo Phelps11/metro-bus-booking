@@ -256,11 +256,13 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
               </div>
 
               {/* WiFi Icon - CSS curved lines */}
-              <div className="absolute top-[16px] right-[53px] w-4 h-3">
-                <div className="absolute inset-0">
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-2 h-1 border-b-2 border-white rounded-b-full"></div>
-                  <div className="absolute top-0.5 left-1/2 transform -translate-x-1/2 w-3 h-1.5 border-b-2 border-white rounded-b-full"></div>
+              <div className="absolute top-[14px] right-[53px] w-4 h-3.5">
+                <div className="absolute inset-0 flex items-end justify-center">
+                  <div className="relative w-full h-full">
+                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2.5 h-1.5 border-t-2 border-white rounded-t-full"></div>
+                    <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-2 border-t-2 border-white rounded-t-full"></div>
+                  </div>
                 </div>
               </div>
 
