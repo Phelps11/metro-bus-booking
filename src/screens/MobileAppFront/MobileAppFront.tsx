@@ -255,7 +255,7 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
 
           {/* Greeting */}
           <div className="absolute h-6 top-16 left-4 sm:left-10 [font-family:'Lato',Helvetica] font-bold text-white text-2xl tracking-[0] leading-6 whitespace-nowrap">
-            {userProfile.fullName.split(' ')[0]},
+            Hi, {userProfile.fullName.split(' ')[0]}
           </div>
           <div className="absolute w-[158px] h-3.5 top-[94px] left-4 sm:left-10 [font-family:'Lato',Helvetica] font-bold text-white text-xs tracking-[0] leading-6 whitespace-nowrap">
             Where are you going to?

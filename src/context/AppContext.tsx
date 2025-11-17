@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { BookingDetails, Ticket, UserProfile, Route } from '../types';
+import { supabase } from '../lib/supabase';
 
 interface AppContextType {
   currentBooking: BookingDetails | null;
@@ -15,13 +16,13 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const defaultProfile: UserProfile = {
-  fullName: 'Oluwafemi Johnson',
-  phoneNumber: '+234 801 234 5678',
-  email: 'oluwafemi@email.com',
-  emergencyContact: '+234 802 345 6789',
-  preferredRoutes: ['Berger - Lekki Phase 1', 'TBS - Ikorodu'],
+  fullName: 'User',
+  phoneNumber: '',
+  email: '',
+  emergencyContact: '',
+  preferredRoutes: [],
   subscriptions: [],
-  walletBalance: 15000
+  walletBalance: 0
 };
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -29,6 +30,74 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [currentTicket, setCurrentTicket] = useState<Ticket | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile>(defaultProfile);
   const [searchResults, setSearchResults] = useState<Route[]>([]);
+
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user) {
+        const { data: userData, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        if (userData && !error) {
+          setUserProfile({
+            fullName: userData.full_name || session.user.email?.split('@')[0] || 'User',
+            phoneNumber: userData.phone_number || '',
+            email: userData.email,
+            emergencyContact: userData.emergency_contact || '',
+            preferredRoutes: userData.preferred_routes || [],
+            subscriptions: [],
+            walletBalance: userData.wallet_balance || 0
+          });
+        } else {
+          setUserProfile(prev => ({
+            ...prev,
+            fullName: session.user.email?.split('@')[0] || 'User',
+            email: session.user.email || ''
+          }));
+        }
+      }
+    };
+
+    loadUserProfile();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      (async () => {
+        if (session?.user) {
+          const { data: userData, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (userData && !error) {
+            setUserProfile({
+              fullName: userData.full_name || session.user.email?.split('@')[0] || 'User',
+              phoneNumber: userData.phone_number || '',
+              email: userData.email,
+              emergencyContact: userData.emergency_contact || '',
+              preferredRoutes: userData.preferred_routes || [],
+              subscriptions: [],
+              walletBalance: userData.wallet_balance || 0
+            });
+          } else {
+            setUserProfile(prev => ({
+              ...prev,
+              fullName: session.user.email?.split('@')[0] || 'User',
+              email: session.user.email || ''
+            }));
+          }
+        } else {
+          setUserProfile(defaultProfile);
+        }
+      })();
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <AppContext.Provider value={{
