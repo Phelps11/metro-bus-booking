@@ -48,6 +48,33 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
     { value: "Ketu", label: "Ketu Bus Stop" }
   ];
 
+  // Route-specific stops
+  const routeStops: { [key: string]: { pickUp: any[], dropOff: any[] } } = {
+    'Berger-Lekki Phase 1': {
+      pickUp: [
+        { value: "Berger Bus Stop", label: "Berger Bus Stop" },
+        { value: "Ojota", label: "Ojota" },
+        { value: "Anthony", label: "Anthony" },
+        { value: "Maryland", label: "Maryland" },
+        { value: "Obanikoro", label: "Obanikoro" }
+      ],
+      dropOff: [
+        { value: "Ajah", label: "Ajah" },
+        { value: "Abraham Adesanya", label: "Abraham Adesanya" },
+        { value: "Sangotedo", label: "Sangotedo" },
+        { value: "Elegushi", label: "Elegushi" },
+        { value: "Lekki Phase 1", label: "Lekki Phase 1" }
+      ]
+    }
+  };
+
+  // Get stops for current route
+  const getRouteStops = () => {
+    if (!selectedRoute) return { pickUp: locationSuggestions, dropOff: locationSuggestions };
+    const routeKey = `${selectedRoute.from}-${selectedRoute.to}`;
+    return routeStops[routeKey] || { pickUp: locationSuggestions, dropOff: locationSuggestions };
+  };
+
   const handleRouteSearch = async () => {
     if (searchForm.from && searchForm.to) {
       setLoading(true);
@@ -86,9 +113,16 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
 
   const handleRouteSelect = (route: Route) => {
     setSelectedRoute(route);
-    // Set default boarding and deboarding points
-    setBoardingPoint(route.from);
-    setDeboardingPoint(route.to);
+    // Set default boarding and deboarding points based on route
+    const routeKey = `${route.from}-${route.to}`;
+    const stops = routeStops[routeKey];
+    if (stops) {
+      setBoardingPoint(stops.pickUp[0].value);
+      setDeboardingPoint(stops.dropOff[0].value);
+    } else {
+      setBoardingPoint(route.from);
+      setDeboardingPoint(route.to);
+    }
     setStep('stops');
   };
 
@@ -325,7 +359,7 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
                       value={boardingPoint}
                       onChange={setBoardingPoint}
                       placeholder="Select boarding point"
-                      suggestions={locationSuggestions}
+                      suggestions={getRouteStops().pickUp}
                     />
                   </div>
 
@@ -337,7 +371,7 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
                       value={deboardingPoint}
                       onChange={setDeboardingPoint}
                       placeholder="Select deboarding point"
-                      suggestions={locationSuggestions}
+                      suggestions={getRouteStops().dropOff}
                     />
                   </div>
                 </div>
