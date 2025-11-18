@@ -146,9 +146,9 @@ export const SubscriptionPayment: React.FC<SubscriptionPaymentProps> = ({
                     ? 'text-purple-700' 
                     : 'text-blue-700'
                 }`}>
-                  {subscription.subscriptionType === 'custom' 
+                  {subscription.subscriptionType === 'custom'
                     ? `Perfect for flexible schedules! You've selected ${subscription.workingDays} specific working days that fit your hybrid work pattern.`
-                    : `This subscription covers ${subscription.workingDays} working days (Monday-Friday only) over ${subscription.duration} week${subscription.duration > 1 ? 's' : ''}. Perfect for your daily commute to work!`
+                    : `This subscription covers ${subscription.workingDays} working days (Monday-Friday only). Perfect for your daily commute to work!`
                   }
                 </p>
               </div>
