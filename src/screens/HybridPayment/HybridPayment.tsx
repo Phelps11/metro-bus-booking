@@ -10,6 +10,8 @@ interface HybridPaymentProps {
   bookingData: {
     route: Route;
     dates: string[];
+    boardingPoint: string;
+    deboardingPoint: string;
     totalPrice: number;
     bookingType: string;
     originalPrice: number;
@@ -61,14 +63,14 @@ export const HybridPayment: React.FC<HybridPaymentProps> = ({
         passengerName: 'Hybrid Worker', // This would come from user profile
         route: `${bookingData.route.from} → ${bookingData.route.to}`,
         boardingTime: bookingData.route.departureTime,
-        boardingPoint: 'Berger Bus Stop',
-        deboardingPoint: 'Lekki Phase 1 Terminal',
+        boardingPoint: bookingData.boardingPoint,
+        deboardingPoint: bookingData.deboardingPoint,
         date: date,
         status: Math.random() > 0.8 ? 'delayed' : 'confirmed',
         delayMinutes: Math.random() > 0.8 ? 30 : undefined,
         barcode: `HB${Date.now().toString()}${index}`
       }));
-      
+
       onPaymentComplete(tickets);
     }, 1500);
   };
@@ -142,6 +144,20 @@ export const HybridPayment: React.FC<HybridPaymentProps> = ({
                   </div>
                   <div className="text-sm font-medium text-purple-600">
                     Departure: {bookingData.route.departureTime} each day
+                  </div>
+                </div>
+              </div>
+
+              {/* Boarding and Deboarding Points */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Boarding Point:</span>
+                    <span className="text-sm font-medium">{bookingData.boardingPoint}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm text-gray-600">Deboarding Point:</span>
+                    <span className="text-sm font-medium">{bookingData.deboardingPoint}</span>
                   </div>
                 </div>
               </div>

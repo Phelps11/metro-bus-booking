@@ -16,9 +16,11 @@ interface HybridBookingProps {
 }
 
 export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue, onHome, onNavigate }) => {
-  const [step, setStep] = useState<'route' | 'dates' | 'summary'>('route');
+  const [step, setStep] = useState<'route' | 'stops' | 'dates' | 'summary'>('route');
   const [selectedRoute, setSelectedRoute] = useState<Route | null>(null);
   const [selectedDates, setSelectedDates] = useState<string[]>([]);
+  const [boardingPoint, setBoardingPoint] = useState('');
+  const [deboardingPoint, setDeboardingPoint] = useState('');
   const [searchForm, setSearchForm] = useState({
     from: '',
     to: ''
@@ -84,7 +86,16 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
 
   const handleRouteSelect = (route: Route) => {
     setSelectedRoute(route);
-    setStep('dates');
+    // Set default boarding and deboarding points
+    setBoardingPoint(route.from);
+    setDeboardingPoint(route.to);
+    setStep('stops');
+  };
+
+  const handleStopsConfirm = () => {
+    if (boardingPoint && deboardingPoint) {
+      setStep('dates');
+    }
   };
 
   const handleDatesConfirm = () => {
@@ -109,6 +120,8 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
     const bookingData = {
       route: selectedRoute,
       dates: selectedDates,
+      boardingPoint,
+      deboardingPoint,
       totalPrice: calculateTotalPrice(),
       bookingType: 'hybrid',
       originalPrice: selectedRoute ? selectedRoute.price * selectedDates.length : 0,
@@ -144,26 +157,33 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
         {/* Progress Indicator */}
         <Card className="bg-white shadow-sm">
           <CardContent className="p-3">
-            <div className="flex items-center justify-between">
-              <div className={`flex items-center space-x-2 ${step === 'route' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            <div className="flex items-center justify-between text-xs">
+              <div className={`flex items-center space-x-1 ${step === 'route' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${
                   step === 'route' ? 'bg-green-600 text-white' : 'bg-gray-200'
                 }`}>1</div>
-                <span className="text-sm font-medium">Route</span>
+                <span className="font-medium">Route</span>
               </div>
-              
-              <div className={`flex items-center space-x-2 ${step === 'dates' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step === 'dates' ? 'bg-green-600 text-white' : 'bg-gray-200'
+
+              <div className={`flex items-center space-x-1 ${step === 'stops' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${
+                  step === 'stops' ? 'bg-green-600 text-white' : 'bg-gray-200'
                 }`}>2</div>
-                <span className="text-sm font-medium">Dates</span>
+                <span className="font-medium">Stops</span>
               </div>
-              
-              <div className={`flex items-center space-x-2 ${step === 'summary' ? 'text-green-600' : 'text-gray-400'}`}>
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
-                  step === 'summary' ? 'bg-green-600 text-white' : 'bg-gray-200'
+
+              <div className={`flex items-center space-x-1 ${step === 'dates' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${
+                  step === 'dates' ? 'bg-green-600 text-white' : 'bg-gray-200'
                 }`}>3</div>
-                <span className="text-sm font-medium">Summary</span>
+                <span className="font-medium">Dates</span>
+              </div>
+
+              <div className={`flex items-center space-x-1 ${step === 'summary' ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center font-bold ${
+                  step === 'summary' ? 'bg-green-600 text-white' : 'bg-gray-200'
+                }`}>4</div>
+                <span className="font-medium">Summary</span>
               </div>
             </div>
           </CardContent>
@@ -266,7 +286,84 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
           </>
         )}
 
-        {/* Step 2: Date Selection */}
+        {/* Step 2: Pick-up and Drop-off Selection */}
+        {step === 'stops' && selectedRoute && (
+          <>
+            <Card className="bg-white shadow-md">
+              <CardContent className="p-4">
+                <div className="flex items-center space-x-3 mb-4">
+                  <MapPin size={20} className="text-green-600" />
+                  <div>
+                    <div className="font-medium">{selectedRoute.from} → {selectedRoute.to}</div>
+                    <div className="text-sm text-gray-600">
+                      {selectedRoute.departureTime} • ₦{selectedRoute.price.toLocaleString()} per trip
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-blue-50 border-blue-200">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-blue-800 mb-2">Select Your Stops</h3>
+                <p className="text-sm text-blue-700">
+                  Choose your preferred boarding and deboarding points for maximum convenience.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white shadow-md">
+              <CardContent className="p-4">
+                <h3 className="font-semibold text-oxford-blue mb-4">Boarding & Deboarding Points</h3>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Preferred Pick-up Point
+                    </label>
+                    <InputWithSuggestions
+                      value={boardingPoint}
+                      onChange={setBoardingPoint}
+                      placeholder="Select boarding point"
+                      suggestions={locationSuggestions}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Preferred Drop-off Point
+                    </label>
+                    <InputWithSuggestions
+                      value={deboardingPoint}
+                      onChange={setDeboardingPoint}
+                      placeholder="Select deboarding point"
+                      suggestions={locationSuggestions}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setStep('route')}
+                className="py-3"
+              >
+                Back to Routes
+              </Button>
+              <Button
+                onClick={handleStopsConfirm}
+                disabled={!boardingPoint || !deboardingPoint}
+                className="bg-green-600 hover:bg-green-700 py-3 disabled:opacity-50"
+              >
+                Continue
+              </Button>
+            </div>
+          </>
+        )}
+
+        {/* Step 3: Date Selection */}
         {step === 'dates' && selectedRoute && (
           <>
             <Card className="bg-white shadow-md">
@@ -358,11 +455,22 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
                     <div>
                       <div className="font-medium">{selectedDates.length} Selected Days</div>
                       <div className="text-sm text-gray-600">
-                        {selectedDates.slice(0, 3).map(date => 
+                        {selectedDates.slice(0, 3).map(date =>
                           new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
                         ).join(', ')}
                         {selectedDates.length > 3 && ` +${selectedDates.length - 3} more`}
                       </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-200 pt-3 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Boarding Point:</span>
+                      <span className="text-sm font-medium">{boardingPoint}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Deboarding Point:</span>
+                      <span className="text-sm font-medium">{deboardingPoint}</span>
                     </div>
                   </div>
                 </div>
