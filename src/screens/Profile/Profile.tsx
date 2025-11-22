@@ -34,8 +34,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   }, [user]);
 
   useEffect(() => {
-    setEditedProfile(userProfile);
-  }, [userProfile]);
+    if (!isEditing) {
+      setEditedProfile(userProfile);
+    }
+  }, [userProfile, isEditing]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
