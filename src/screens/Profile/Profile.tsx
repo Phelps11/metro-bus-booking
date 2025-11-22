@@ -26,6 +26,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<UserProfile>(userProfile);
   const [loading, setLoading] = useState(false);
+  const [localProfile, setLocalProfile] = useState<UserProfile>(userProfile);
 
   useEffect(() => {
     if (user) {
@@ -35,9 +36,9 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
 
   useEffect(() => {
     if (!isEditing) {
-      setEditedProfile(userProfile);
+      setEditedProfile(localProfile);
     }
-  }, [userProfile, isEditing]);
+  }, [localProfile, isEditing]);
 
   const fetchUserProfile = async () => {
     if (!user) return;
@@ -62,6 +63,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           walletBalance: data.wallet_balance || 0
         };
         setUserProfile(profile);
+        setLocalProfile(profile);
         setEditedProfile(profile);
       }
     } catch (error) {
@@ -135,6 +137,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
       if (error) throw error;
 
       setUserProfile(editedProfile);
+      setLocalProfile(editedProfile);
       setIsEditing(false);
       alert('Profile updated successfully!');
     } catch (error) {
@@ -146,7 +149,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   };
 
   const handleCancelEdit = () => {
-    setEditedProfile(userProfile);
+    setEditedProfile(localProfile);
     setIsEditing(false);
   };
 
