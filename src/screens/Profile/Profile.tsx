@@ -33,6 +33,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
     }
   }, [user]);
 
+  useEffect(() => {
+    setEditedProfile(userProfile);
+  }, [userProfile]);
+
   const fetchUserProfile = async () => {
     if (!user) return;
 
@@ -130,13 +134,18 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
 
       setUserProfile(editedProfile);
       setIsEditing(false);
-      await fetchUserProfile();
+      alert('Profile updated successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditedProfile(userProfile);
+    setIsEditing(false);
   };
 
   const handleSubscribeToRoute = () => {
@@ -610,13 +619,23 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           <CardContent className="p-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold text-oxford-blue">Contact Information</h3>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(!isEditing)}
-              >
-                {isEditing ? 'Cancel' : 'Edit'}
-              </Button>
+              {!isEditing ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditing(true)}
+                >
+                  Edit
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </Button>
+              )}
             </div>
 
             <div className="space-y-4">
