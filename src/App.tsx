@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './screens/Login';
 import { SignUp } from './screens/SignUp';
 import { Onboarding } from './screens/Onboarding/Onboarding';
+import { ResetPassword } from './screens/ResetPassword';
 import { MobileAppFront } from './screens/MobileAppFront/MobileAppFront';
 import { SearchResults } from './screens/SearchResults/SearchResults';
 import { PassengerDetails } from './screens/PassengerDetails/PassengerDetails';
@@ -18,7 +19,7 @@ import { HybridTickets } from './screens/HybridTickets/HybridTickets';
 import { Discover } from './screens/Discover';
 import { Route, PassengerDetails as PassengerDetailsType, BookingDetails, Ticket as TicketType, RouteSubscription } from './types';
 
-type Screen = 'login' | 'signup' | 'onboarding' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
+type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -178,6 +179,16 @@ function AppContent() {
               setNavigationHistory(['home']);
             }}
             onLoginClick={() => setCurrentScreen('login')}
+          />
+        );
+      }
+      if (currentScreen === 'reset-password') {
+        return (
+          <ResetPassword
+            onResetSuccess={() => {
+              setCurrentScreen('login');
+              setNavigationHistory(['login']);
+            }}
           />
         );
       }

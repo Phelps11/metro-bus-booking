@@ -20,9 +20,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       (async () => {
         setUser(session?.user ?? null);
+
+        if (event === 'PASSWORD_RECOVERY') {
+          window.location.href = '/reset-password';
+        }
       })();
     });
 
