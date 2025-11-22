@@ -128,6 +128,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
 
       setUserProfile(editedProfile);
       setIsEditing(false);
+      await fetchUserProfile();
     } catch (error) {
       console.error('Error updating profile:', error);
       alert('Failed to update profile. Please try again.');
@@ -665,9 +666,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
               {isEditing && (
                 <Button
                   onClick={handleSaveProfile}
+                  disabled={loading}
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
-                  Save Changes
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </Button>
               )}
             </div>
