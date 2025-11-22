@@ -53,16 +53,17 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
     'Berger-Lekki Phase 1': {
       pickUp: [
         { value: "Berger Bus Stop", label: "Berger Bus Stop" },
-        { value: "Ojota", label: "Ojota" },
-        { value: "Anthony", label: "Anthony" },
-        { value: "Maryland", label: "Maryland" },
-        { value: "Obanikoro", label: "Obanikoro" }
+        { value: "Magodo Phase II/Secretariat", label: "Magodo Phase II/Secretariat" },
+        { value: "Toll Gate/7UP", label: "Toll Gate/7UP" },
+        { value: "Alapere", label: "Alapere" },
+        { value: "Ogudu", label: "Ogudu" },
+        { value: "Iyana-Oworo", label: "Iyana-Oworo" }
       ],
       dropOff: [
-        { value: "Ajah", label: "Ajah" },
-        { value: "Abraham Adesanya", label: "Abraham Adesanya" },
-        { value: "Sangotedo", label: "Sangotedo" },
-        { value: "Elegushi", label: "Elegushi" },
+        { value: "Bonny Camp", label: "Bonny Camp" },
+        { value: "Adeola Odeku Junction", label: "Adeola Odeku Junction" },
+        { value: "Eko Hotel Roundabout", label: "Eko Hotel Roundabout" },
+        { value: "Sandfill Bus Stop", label: "Sandfill Bus Stop" },
         { value: "Lekki Phase 1", label: "Lekki Phase 1" }
       ]
     }
@@ -113,16 +114,9 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
 
   const handleRouteSelect = (route: Route) => {
     setSelectedRoute(route);
-    // Set default boarding and deboarding points based on route
-    const routeKey = `${route.from}-${route.to}`;
-    const stops = routeStops[routeKey];
-    if (stops) {
-      setBoardingPoint(stops.pickUp[0].value);
-      setDeboardingPoint(stops.dropOff[0].value);
-    } else {
-      setBoardingPoint(route.from);
-      setDeboardingPoint(route.to);
-    }
+    // Clear boarding and deboarding points - user must select
+    setBoardingPoint('');
+    setDeboardingPoint('');
     setStep('stops');
   };
 
