@@ -248,11 +248,11 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
           <div className="absolute w-full h-10 top-0 left-0 px-2 z-50">
             <div className="relative h-10 bg-[url(/fill-17.svg)] bg-[100%_100%]">
               {/* Network Signal - CSS bars */}
-              <div className="absolute top-[14px] right-[76px] flex space-x-0.5 items-end">
-                <div className="w-1 h-2 bg-white rounded-sm"></div>
-                <div className="w-1 h-2.5 bg-white rounded-sm"></div>
-                <div className="w-1 h-3 bg-white rounded-sm"></div>
+              <div className="absolute top-[14px] right-[76px] flex space-x-0.5 items-start">
                 <div className="w-1 h-3.5 bg-white rounded-sm"></div>
+                <div className="w-1 h-3 bg-white rounded-sm"></div>
+                <div className="w-1 h-2.5 bg-white rounded-sm"></div>
+                <div className="w-1 h-2 bg-white rounded-sm"></div>
               </div>
 
               {/* WiFi Icon - CSS curved lines */}
