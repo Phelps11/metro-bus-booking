@@ -331,15 +331,6 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
               </CardContent>
             </Card>
 
-            <Card className="bg-blue-50 border-blue-200">
-              <CardContent className="p-4">
-                <h3 className="font-semibold text-blue-800 mb-2">Select Your Stops</h3>
-                <p className="text-sm text-blue-700">
-                  Choose your preferred boarding and deboarding points for maximum convenience.
-                </p>
-              </CardContent>
-            </Card>
-
             <Card className="bg-white shadow-md">
               <CardContent className="p-4">
                 <h3 className="font-semibold text-oxford-blue mb-4">Boarding & Deboarding Points</h3>
