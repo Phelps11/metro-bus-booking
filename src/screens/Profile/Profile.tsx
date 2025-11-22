@@ -628,7 +628,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() => {
+                    setEditedProfile(localProfile);
+                    setIsEditing(true);
+                  }}
                 >
                   Edit
                 </Button>
@@ -654,7 +657,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
                       onChange={(e) => setEditedProfile(prev => ({ ...prev, fullName: e.target.value }))}
                     />
                   ) : (
-                    <div className="font-medium">{userProfile.fullName}</div>
+                    <div className="font-medium">{localProfile.fullName}</div>
                   )}
                 </div>
               </div>
@@ -669,7 +672,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
                       onChange={(e) => setEditedProfile(prev => ({ ...prev, phoneNumber: e.target.value }))}
                     />
                   ) : (
-                    <div className="font-medium">{userProfile.phoneNumber}</div>
+                    <div className="font-medium">{localProfile.phoneNumber}</div>
                   )}
                 </div>
               </div>
@@ -684,7 +687,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
                       onChange={(e) => setEditedProfile(prev => ({ ...prev, email: e.target.value }))}
                     />
                   ) : (
-                    <div className="font-medium">{userProfile.email}</div>
+                    <div className="font-medium">{localProfile.email}</div>
                   )}
                 </div>
               </div>
@@ -699,7 +702,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
                       onChange={(e) => setEditedProfile(prev => ({ ...prev, emergencyContact: e.target.value }))}
                     />
                   ) : (
-                    <div className="font-medium">{userProfile.emergencyContact}</div>
+                    <div className="font-medium">{localProfile.emergencyContact}</div>
                   )}
                 </div>
               </div>
