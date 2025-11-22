@@ -250,7 +250,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
       setSupportSubject('');
     } catch (error) {
       console.error('Error sending support message:', error);
-      alert('Failed to send message. Please try emailing support@metrobus.com directly.');
+      alert('Failed to send message. Please try emailing metrobusng@gmail.com directly.');
     } finally {
       setSendingSupport(false);
     }
@@ -911,8 +911,8 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
 
                   <div className="text-center text-sm text-gray-600">
                     Or email us directly at{' '}
-                    <a href="mailto:support@metrobus.com" className="text-green-600 hover:underline">
-                      support@metrobus.com
+                    <a href="mailto:metrobusng@gmail.com" className="text-green-600 hover:underline">
+                      metrobusng@gmail.com
                     </a>
                   </div>
                 </div>
