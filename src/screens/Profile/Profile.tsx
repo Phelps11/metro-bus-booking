@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Mail, Shield, MapPin, Calendar, Percent, Clock, ArrowLeft, Wallet, Plus, CreditCard, Building2 } from 'lucide-react';
+import { User, Phone, Mail, Shield, MapPin, Calendar, Percent, Clock, ArrowLeft, Wallet, Plus, CreditCard, Building2, MessageCircle } from 'lucide-react';
 import { MobileLayout } from '../../components/Layout/MobileLayout';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
@@ -75,9 +75,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'transfer'>('card');
   const [walletBalance] = useState(15750); // Mock wallet balance
 
-  // Preferred routes states
-  const [showAddRoute, setShowAddRoute] = useState(false);
-  const [newRoute, setNewRoute] = useState('');
+  // Contact support states
+  const [supportMessage, setSupportMessage] = useState('');
+  const [supportSubject, setSupportSubject] = useState('');
+  const [sendingSupport, setSendingSupport] = useState(false);
 
   // Quick booking states
   const [showQuickBooking, setShowQuickBooking] = useState(false);
@@ -203,26 +204,41 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
     }
   };
 
-  const handleAddPreferredRoute = () => {
-    if (newRoute.trim()) {
-      const updatedProfile = {
-        ...editedProfile,
-        preferredRoutes: [...editedProfile.preferredRoutes, newRoute.trim()]
-      };
-      setEditedProfile(updatedProfile);
-      setUserProfile(updatedProfile);
-      setNewRoute('');
-      setShowAddRoute(false);
+  const handleSendSupportMessage = async () => {
+    if (!supportMessage.trim() || !supportSubject.trim()) {
+      alert('Please fill in both subject and message');
+      return;
     }
-  };
 
-  const handleRemovePreferredRoute = (index: number) => {
-    const updatedProfile = {
-      ...editedProfile,
-      preferredRoutes: editedProfile.preferredRoutes.filter((_, i) => i !== index)
-    };
-    setEditedProfile(updatedProfile);
-    setUserProfile(updatedProfile);
+    if (supportMessage.length > 500) {
+      alert('Message must be 500 characters or less');
+      return;
+    }
+
+    setSendingSupport(true);
+    try {
+      const { error } = await supabase
+        .from('support_messages')
+        .insert({
+          user_id: user?.id,
+          user_email: userProfile.email,
+          user_name: userProfile.fullName,
+          subject: supportSubject,
+          message: supportMessage,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      alert('Your message has been sent to support. We will respond within 24 hours.');
+      setSupportMessage('');
+      setSupportSubject('');
+    } catch (error) {
+      console.error('Error sending support message:', error);
+      alert('Failed to send message. Please try emailing support@metrobus.com directly.');
+    } finally {
+      setSendingSupport(false);
+    }
   };
 
   const handleRouteClick = (route: string) => {
@@ -804,95 +820,61 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           </CardContent>
         </Card>
 
-        {/* Preferred Routes */}
+        {/* Contact Support */}
         <Card className="bg-white shadow-md">
           <CardContent className="p-4">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="font-semibold text-oxford-blue">Preferred Routes</h3>
-              <button
-                onClick={() => setShowAddRoute(true)}
-                className="text-green-600 hover:text-green-700 p-1 hover:bg-green-50 rounded transition-colors"
-              >
-                <Plus size={20} />
-              </button>
+            <div className="flex items-center space-x-2 mb-4">
+              <MessageCircle size={20} className="text-oxford-blue" />
+              <h3 className="font-semibold text-oxford-blue">Contact Support</h3>
             </div>
 
-            {/* Add Route Modal */}
-            {showAddRoute && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-green-800">Add New Route</h4>
-                  <button
-                    onClick={() => setShowAddRoute(false)}
-                    className="text-green-600 hover:text-green-700"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <div className="space-y-3">
-                  <InputWithSuggestions
-                    value={newRoute}
-                    onChange={setNewRoute}
-                    placeholder="Enter route (e.g., Ikeja → Victoria Island)"
-                    suggestions={routeSuggestions}
-                    className="w-full"
-                  />
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAddRoute(false)}
-                      className="flex-1"
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleAddPreferredRoute}
-                      disabled={!newRoute.trim()}
-                      className="flex-1 bg-green-600 hover:bg-green-700"
-                      size="sm"
-                    >
-                      Add Route
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <p className="text-sm text-blue-800">
+                Need help? Send us a message and we'll respond within 24 hours.
+              </p>
+            </div>
 
-            <div className="space-y-2">
-              {editedProfile.preferredRoutes.map((route, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer group">
-                  <div 
-                    className="flex-1 cursor-pointer"
-                    onClick={() => handleRouteClick(route)}
-                  >
-                    <span className="text-sm font-medium text-oxford-blue group-hover:text-green-600 transition-colors">
-                      {route}
-                    </span>
-                    <div className="text-xs text-gray-500 group-hover:text-green-500 transition-colors">
-                      Click to book a trip
-                    </div>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemovePreferredRoute(index);
-                    }}
-                    className="ml-2"
-                  >
-                    Remove
-                  </Button>
-                </div>
-              ))}
-              {editedProfile.preferredRoutes.length === 0 && (
-                <div className="text-center py-4 text-gray-500">
-                  <MapPin size={24} className="mx-auto mb-2 text-gray-300" />
-                  <p className="text-sm">No preferred routes added yet</p>
-                  <p className="text-xs text-gray-400">Click the + button to add your favorite routes</p>
-                </div>
-              )}
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+                <Input
+                  value={supportSubject}
+                  onChange={(e) => setSupportSubject(e.target.value)}
+                  placeholder="Brief description of your issue"
+                  maxLength={100}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Message ({supportMessage.length}/500)
+                </label>
+                <textarea
+                  value={supportMessage}
+                  onChange={(e) => setSupportMessage(e.target.value)}
+                  placeholder="Describe your issue or question in detail..."
+                  maxLength={500}
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <Button
+                onClick={handleSendSupportMessage}
+                disabled={sendingSupport || !supportMessage.trim() || !supportSubject.trim()}
+                className="w-full bg-green-600 hover:bg-green-700"
+              >
+                {sendingSupport ? 'Sending...' : 'Send Message'}
+              </Button>
+
+              <div className="text-center text-sm text-gray-600">
+                Or email us directly at{' '}
+                <a href="mailto:support@metrobus.com" className="text-green-600 hover:underline">
+                  support@metrobus.com
+                </a>
+              </div>
             </div>
           </CardContent>
         </Card>
