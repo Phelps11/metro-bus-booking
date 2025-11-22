@@ -244,51 +244,6 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
           <div className="absolute w-full h-[249px] top-0 left-0 bg-[#f0f1f3]" />
           <div className="absolute w-full h-[230px] top-0 left-0 bg-oxford-blue" />
 
-          {/* Status Bar */}
-          <div className="absolute w-full h-10 top-0 left-0 px-2 z-50">
-            <div className="relative h-10 bg-[url(/fill-17.svg)] bg-[100%_100%]">
-              {/* Network Signal - CSS bars */}
-              <div className="absolute top-[14px] right-[76px] flex space-x-0.5 items-start">
-                <div className="w-1 h-2 bg-white rounded-sm"></div>
-                <div className="w-1 h-2.5 bg-white rounded-sm"></div>
-                <div className="w-1 h-3 bg-white rounded-sm"></div>
-                <div className="w-1 h-3.5 bg-white rounded-sm"></div>
-              </div>
-
-              {/* WiFi Icon - CSS curved lines */}
-              <div className="absolute top-[14px] right-[53px] w-4 h-3.5">
-                <div className="absolute inset-0 flex items-end justify-center">
-                  <div className="relative w-full h-full">
-                    <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
-                    <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2.5 h-1.5 border-t-2 border-white rounded-t-full"></div>
-                    <div className="absolute bottom-1.5 left-1/2 transform -translate-x-1/2 w-4 h-2 border-t-2 border-white rounded-t-full"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Battery Icon - CSS rectangle with fill */}
-              <div className="absolute top-[14px] right-[24px] w-[25px] h-[11px]">
-                <div className="relative w-full h-full">
-                  {/* Battery outline */}
-                  <div className="absolute top-0 left-0 w-[22px] h-[11px] border border-white rounded-sm bg-transparent"></div>
-                  {/* Battery fill - dynamic based on battery level */}
-                  <div
-                    className="absolute top-[1px] left-[1px] h-[9px] bg-white rounded-sm transition-all duration-300"
-                    style={{
-                      width: `${Math.max(1, (batteryLevel / 100) * 20)}px`,
-                      backgroundColor: batteryLevel <= 20 ? '#ef4444' : 'white'
-                    }}
-                  ></div>
-                  {/* Battery tip */}
-                  <div className="absolute top-[3px] right-0 w-[2px] h-[5px] bg-white rounded-r-sm"></div>
-                </div>
-              </div>
-
-              <div className="absolute top-[13px] left-[24px] [font-family:'Satoshi-Italic',Helvetica] font-normal italic text-white text-[15px] tracking-[0.07px] leading-[normal]">
-                {currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: false })}
-              </div>
-            </div>
-          </div>
 
           {/* Greeting */}
           <div className="absolute h-6 top-16 left-4 sm:left-10 [font-family:'Lato',Helvetica] font-bold text-white text-2xl tracking-[0] leading-6 whitespace-nowrap">
