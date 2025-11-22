@@ -17,6 +17,9 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [resetMode, setResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,12 +47,39 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
     }
   };
 
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setResetMessage('');
+    setLoading(true);
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (resetError) {
+        setError(resetError.message);
+        return;
+      }
+
+      setResetMessage('Password reset link sent! Check your email.');
+      setResetEmail('');
+    } catch (err) {
+      setError('Failed to send reset email');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <MobileLayout showBottomNav={false}>
       {/* Header */}
       <div className="bg-oxford-blue h-[80px] flex items-center justify-center relative">
         <div className="absolute inset-0 bg-gradient-to-r from-oxford-blue to-prussian-blue" />
-        <h1 className="relative text-white font-bold text-lg">Sign In</h1>
+        <h1 className="relative text-white font-bold text-lg">
+          {resetMode ? 'Reset Password' : 'Sign In'}
+        </h1>
       </div>
 
       <div className="min-h-[calc(100vh-80px)] bg-gray-50">
@@ -64,10 +94,12 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
               />
             </div>
             <h1 className="text-2xl font-bold text-oxford-blue">
-              Welcome Back
+              {resetMode ? 'Reset Your Password' : 'Welcome Back'}
             </h1>
             <p className="text-gray-600">
-              Sign in to continue your journey
+              {resetMode
+                ? 'Enter your email to receive a password reset link'
+                : 'Sign in to continue your journey'}
             </p>
           </div>
 
@@ -80,80 +112,149 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
             </Card>
           )}
 
-          {/* Login Form */}
+          {/* Success Message */}
+          {resetMessage && (
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4">
+                <p className="text-sm text-green-800 text-center">{resetMessage}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Login Form or Reset Form */}
           <Card className="bg-white shadow-md">
             <CardContent className="p-6 space-y-4">
-              <form onSubmit={handleLogin} className="space-y-4">
-                {/* Email */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address *
-                  </label>
-                  <div className="relative">
-                    <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      required
-                      className="pl-10"
-                    />
+              {resetMode ? (
+                <form onSubmit={handlePasswordReset} className="space-y-4">
+                  {/* Reset Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <div className="relative">
+                      <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        type="email"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className="pl-10"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Password */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Password *
-                  </label>
-                  <div className="relative">
-                    <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      required
-                      className="pl-10 pr-10"
-                    />
+                  {/* Reset Button */}
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
+                  >
+                    {loading ? 'Sending...' : 'Send Reset Link'}
+                  </Button>
+
+                  {/* Back to Login */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResetMode(false);
+                      setError('');
+                      setResetMessage('');
+                    }}
+                    className="w-full text-center text-sm text-oxford-blue hover:underline"
+                  >
+                    Back to Sign In
+                  </button>
+                </form>
+              ) : (
+                <form onSubmit={handleLogin} className="space-y-4">
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Email Address *
+                    </label>
+                    <div className="relative">
+                      <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Password *
+                    </label>
+                    <div className="relative">
+                      <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password"
+                        required
+                        className="pl-10 pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Forgot Password Link */}
+                  <div className="text-right">
                     <button
                       type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                      onClick={() => {
+                        setResetMode(true);
+                        setError('');
+                      }}
+                      className="text-sm text-oxford-blue hover:underline"
                     >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      Forgot password?
                     </button>
                   </div>
-                </div>
 
-                {/* Sign In Button */}
-                <Button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
-                >
-                  {loading ? 'Signing in...' : 'Sign In'}
-                </Button>
-              </form>
+                  {/* Sign In Button */}
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
+                  >
+                    {loading ? 'Signing in...' : 'Sign In'}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
 
           {/* Sign Up Link */}
-          <Card className="bg-white shadow-md">
-            <CardContent className="p-4">
-              <p className="text-center text-gray-600 text-sm mb-3">
-                Don't have an account?
-              </p>
-              <Button
-                onClick={onSignUpClick}
-                variant="outline"
-                className="w-full py-3"
-              >
-                Create New Account
-              </Button>
-            </CardContent>
-          </Card>
+          {!resetMode && (
+            <Card className="bg-white shadow-md">
+              <CardContent className="p-4">
+                <p className="text-center text-gray-600 text-sm mb-3">
+                  Don't have an account?
+                </p>
+                <Button
+                  onClick={onSignUpClick}
+                  variant="outline"
+                  className="w-full py-3"
+                >
+                  Create New Account
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Additional Info */}
           <p className="text-xs text-gray-500 text-center leading-relaxed px-4">
