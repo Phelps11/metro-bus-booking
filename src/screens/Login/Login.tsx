@@ -54,6 +54,24 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
     setLoading(true);
 
     try {
+      const { data: users, error: queryError } = await supabase
+        .from('users')
+        .select('id')
+        .eq('email', resetEmail)
+        .maybeSingle();
+
+      if (queryError) {
+        setError('Failed to verify email. Please try again.');
+        setLoading(false);
+        return;
+      }
+
+      if (!users) {
+        setError('This email is not attached to a user');
+        setLoading(false);
+        return;
+      }
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
         redirectTo: `${window.location.origin}/reset-password`,
       });
