@@ -15,35 +15,50 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isValidToken, setIsValidToken] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkSession = async () => {
-      console.log('ResetPassword: Checking session...');
-      console.log('URL hash:', window.location.hash);
-      console.log('URL pathname:', window.location.pathname);
+    const checkToken = async () => {
+      // Pull the access token from the URL hash
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
 
-      // Wait a bit for Supabase to process the URL hash
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!accessToken) {
+        setError('Invalid or expired password reset link.');
+        return;
+      }
 
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('ResetPassword: Session exists:', !!session);
-      console.log('ResetPassword: User:', session?.user?.id);
+      setToken(accessToken);
 
-      if (session) {
-        setIsValidToken(true);
-      } else {
-        setError('Invalid or expired reset link. Please request a new one.');
+      // Set the session with the token from URL
+      if (refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          setError('Invalid or expired reset link. Please request a new one.');
+        }
       }
     };
-    checkSession();
+
+    checkToken();
   }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
+
+    if (!password || !confirmPassword) {
+      setError('Please fill both fields');
+      return;
+    }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
@@ -52,6 +67,11 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
+      return;
+    }
+
+    if (!token) {
+      setError('Invalid reset link. Please request a new one.');
       return;
     }
 
@@ -68,16 +88,20 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
         return;
       }
 
+      setSuccess('Password updated successfully! You can now log in.');
+
       // Clear the hash from URL
       window.history.replaceState(null, '', window.location.pathname);
 
       // Sign out the user after password reset so they can login with new password
       await supabase.auth.signOut();
 
-      onResetSuccess();
+      // Wait a bit to show success message before redirecting
+      setTimeout(() => {
+        onResetSuccess();
+      }, 2000);
     } catch (err) {
       setError('Failed to reset password');
-    } finally {
       setLoading(false);
     }
   };
@@ -115,7 +139,15 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
             </Card>
           )}
 
-          {isValidToken ? (
+          {success && (
+            <Card className="bg-green-50 border-green-200">
+              <CardContent className="p-4">
+                <p className="text-sm text-green-800 text-center">{success}</p>
+              </CardContent>
+            </Card>
+          )}
+
+          {token ? (
             <Card className="bg-white shadow-md">
               <CardContent className="p-6 space-y-4">
                 <form onSubmit={handleResetPassword} className="space-y-4">
@@ -172,30 +204,29 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
 
                   <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || !!success}
                     className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
                   >
-                    {loading ? 'Resetting Password...' : 'Reset Password'}
+                    {loading ? 'Updating Password...' : success ? 'Redirecting...' : 'Reset Password'}
                   </Button>
                 </form>
               </CardContent>
             </Card>
-          ) : (
+          ) : error ? (
             <Card className="bg-white shadow-md">
-              <CardContent className="p-6 text-center">
-                <p className="text-gray-600 mb-4">
+              <CardContent className="p-6 text-center space-y-4">
+                <p className="text-gray-600">
                   This reset link is invalid or has expired.
                 </p>
                 <Button
-                  onClick={() => window.location.href = '/'}
-                  variant="outline"
-                  className="w-full py-3"
+                  onClick={onResetSuccess}
+                  className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-3"
                 >
                   Return to Login
                 </Button>
               </CardContent>
             </Card>
-          )}
+          ) : null}
         </div>
       </div>
     </MobileLayout>
