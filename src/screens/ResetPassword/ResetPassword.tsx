@@ -54,8 +54,15 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
 
       if (updateError) {
         setError(updateError.message);
+        setLoading(false);
         return;
       }
+
+      // Clear the hash from URL
+      window.history.replaceState(null, '', window.location.pathname);
+
+      // Sign out the user after password reset so they can login with new password
+      await supabase.auth.signOut();
 
       onResetSuccess();
     } catch (err) {
