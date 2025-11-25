@@ -18,7 +18,13 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [resetMode, setResetMode] = useState(false);
+  const [resetStep, setResetStep] = useState<'email' | 'otp'>('email');
   const [resetEmail, setResetEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetMessage, setResetMessage] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -47,7 +53,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
     }
   };
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setResetMessage('');
@@ -64,10 +70,80 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
         return;
       }
 
-      setResetMessage('If an account exists with this email, you will receive a 6-digit verification code.');
-      setResetEmail('');
+      setResetStep('otp');
+      setResetMessage('A 6-digit verification code has been sent to your email.');
     } catch (err) {
       setError('Failed to send verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTPAndResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setResetMessage('');
+
+    if (!otp || otp.length !== 6) {
+      setError('Please enter a valid 6-digit code');
+      return;
+    }
+
+    if (!newPassword || !confirmPassword) {
+      setError('Please fill both password fields');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: resetEmail,
+        token: otp,
+        type: 'email',
+      });
+
+      if (verifyError) {
+        setError('Invalid or expired verification code');
+        setLoading(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        setError(updateError.message);
+        setLoading(false);
+        return;
+      }
+
+      await supabase.auth.signOut();
+
+      setResetMessage('Password updated successfully!');
+      setTimeout(() => {
+        setResetMode(false);
+        setResetStep('email');
+        setResetEmail('');
+        setOtp('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setError('');
+        setResetMessage('');
+      }, 2000);
+    } catch (err) {
+      setError('Failed to reset password');
     } finally {
       setLoading(false);
     }
@@ -95,11 +171,17 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
               />
             </div>
             <h1 className="text-2xl font-bold text-oxford-blue">
-              {resetMode ? 'Reset Your Password' : 'Welcome Back'}
+              {resetMode
+                ? resetStep === 'email'
+                  ? 'Reset Your Password'
+                  : 'Verify & Create New Password'
+                : 'Welcome Back'}
             </h1>
             <p className="text-gray-600">
               {resetMode
-                ? 'Enter your email to receive a 6-digit verification code'
+                ? resetStep === 'email'
+                  ? 'Enter your email to receive a 6-digit verification code'
+                  : 'Enter the code sent to your email and create a new password'
                 : 'Sign in to continue your journey'}
             </p>
           </div>
@@ -126,47 +208,149 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
           <Card className="bg-white shadow-md">
             <CardContent className="p-6 space-y-4">
               {resetMode ? (
-                <form onSubmit={handlePasswordReset} className="space-y-4">
-                  {/* Reset Email */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Email Address *
-                    </label>
-                    <div className="relative">
-                      <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <Input
-                        type="email"
-                        value={resetEmail}
-                        onChange={(e) => setResetEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        required
-                        className="pl-10"
-                      />
+                resetStep === 'email' ? (
+                  <form onSubmit={handleSendOTP} className="space-y-4">
+                    {/* Reset Email */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address *
+                      </label>
+                      <div className="relative">
+                        <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <Input
+                          type="email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          placeholder="Enter your email"
+                          required
+                          className="pl-10"
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Reset Button */}
-                  <Button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
-                  >
-                    {loading ? 'Sending...' : 'Send Verification Code'}
-                  </Button>
+                    {/* Reset Button */}
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
+                    >
+                      {loading ? 'Sending...' : 'Send Verification Code'}
+                    </Button>
 
-                  {/* Back to Login */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setResetMode(false);
-                      setError('');
-                      setResetMessage('');
-                    }}
-                    className="w-full text-center text-sm text-oxford-blue hover:underline"
-                  >
-                    Back to Sign In
-                  </button>
-                </form>
+                    {/* Back to Login */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetMode(false);
+                        setResetStep('email');
+                        setError('');
+                        setResetMessage('');
+                      }}
+                      className="w-full text-center text-sm text-oxford-blue hover:underline"
+                    >
+                      Back to Sign In
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOTPAndResetPassword} className="space-y-4">
+                    {/* OTP Input */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Verification Code *
+                      </label>
+                      <Input
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        placeholder="Enter 6-digit code"
+                        required
+                        maxLength={6}
+                        className="text-center text-2xl tracking-widest"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Enter the 6-digit code sent to {resetEmail}
+                      </p>
+                    </div>
+
+                    {/* New Password */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        New Password *
+                      </label>
+                      <div className="relative">
+                        <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <Input
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Enter new password"
+                          required
+                          className="pl-10 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        >
+                          {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Must be at least 6 characters
+                      </p>
+                    </div>
+
+                    {/* Confirm Password */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Confirm Password *
+                      </label>
+                      <div className="relative">
+                        <Lock size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <Input
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder="Confirm new password"
+                          required
+                          className="pl-10 pr-10"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                        >
+                          {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Reset Password Button */}
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
+                    >
+                      {loading ? 'Updating Password...' : 'Reset Password'}
+                    </Button>
+
+                    {/* Back to email step */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setResetStep('email');
+                        setOtp('');
+                        setNewPassword('');
+                        setConfirmPassword('');
+                        setError('');
+                        setResetMessage('');
+                      }}
+                      className="w-full text-center text-sm text-oxford-blue hover:underline"
+                    >
+                      Use a different email
+                    </button>
+                  </form>
+                )
               ) : (
                 <form onSubmit={handleLogin} className="space-y-4">
                   {/* Email */}
