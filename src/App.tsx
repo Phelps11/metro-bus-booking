@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Login } from './screens/Login';
@@ -23,6 +24,8 @@ type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'home' | 's
 
 function AppContent() {
   const { user, loading, isPasswordRecovery, clearRecoveryMode } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isOnboarded, setIsOnboarded] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>('login');
   const [navigationHistory, setNavigationHistory] = useState<Screen[]>(['login']);
@@ -33,6 +36,13 @@ function AppContent() {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [hybridBookingData, setHybridBookingData] = useState<any>(null);
   const [hybridTickets, setHybridTickets] = useState<TicketType[]>([]);
+
+  // Check if we're on the reset-password route
+  useEffect(() => {
+    if (location.pathname === '/reset-password') {
+      setCurrentScreen('reset-password');
+    }
+  }, [location.pathname]);
 
   const handleOnboardingComplete = (userData: any) => {
     // In a real app, you would save this to your backend/database
@@ -158,11 +168,12 @@ function AppContent() {
       );
     }
 
-    if (isPasswordRecovery) {
+    if (isPasswordRecovery || currentScreen === 'reset-password') {
       return (
         <ResetPassword
           onResetSuccess={() => {
             clearRecoveryMode();
+            navigate('/');
             setCurrentScreen('login');
             setNavigationHistory(['login']);
           }}
