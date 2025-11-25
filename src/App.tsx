@@ -39,10 +39,14 @@ function AppContent() {
 
   // Check if we're on the reset-password route
   useEffect(() => {
+    console.log('Current pathname:', location.pathname);
+    console.log('Current hash:', location.hash);
+    console.log('Current search:', location.search);
     if (location.pathname === '/reset-password') {
+      console.log('Setting screen to reset-password');
       setCurrentScreen('reset-password');
     }
-  }, [location.pathname]);
+  }, [location.pathname, location.hash]);
 
   const handleOnboardingComplete = (userData: any) => {
     // In a real app, you would save this to your backend/database

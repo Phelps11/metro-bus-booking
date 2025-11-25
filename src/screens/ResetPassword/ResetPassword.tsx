@@ -21,7 +21,17 @@ export const ResetPassword: React.FC<ResetPasswordProps> = ({ onResetSuccess }) 
 
   useEffect(() => {
     const checkSession = async () => {
+      console.log('ResetPassword: Checking session...');
+      console.log('URL hash:', window.location.hash);
+      console.log('URL pathname:', window.location.pathname);
+
+      // Wait a bit for Supabase to process the URL hash
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('ResetPassword: Session exists:', !!session);
+      console.log('ResetPassword: User:', session?.user?.id);
+
       if (session) {
         setIsValidToken(true);
       } else {
