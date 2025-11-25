@@ -171,7 +171,7 @@ function AppContent() {
       );
     }
 
-    if (isPasswordRecovery || currentScreen === 'reset-password') {
+    if (isPasswordRecovery) {
       return (
         <ResetPassword
           onResetSuccess={() => {
