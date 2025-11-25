@@ -37,8 +37,14 @@ export const ResetPasswordDemo: React.FC = () => {
     setLoading(true);
 
     setTimeout(() => {
-      setSuccess('Password updated successfully! You can now log in.');
+      setSuccess('Password updated successfully! This is a demo - no actual changes were made.');
       setLoading(false);
+
+      setTimeout(() => {
+        setPassword('');
+        setConfirmPassword('');
+        setSuccess('');
+      }, 3000);
     }, 1500);
   };
 
