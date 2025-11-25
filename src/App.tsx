@@ -6,6 +6,7 @@ import { Login } from './screens/Login';
 import { SignUp } from './screens/SignUp';
 import { Onboarding } from './screens/Onboarding/Onboarding';
 import { ResetPassword } from './screens/ResetPassword';
+import { ResetPasswordDemo } from './screens/ResetPassword/ResetPasswordDemo';
 import { MobileAppFront } from './screens/MobileAppFront/MobileAppFront';
 import { SearchResults } from './screens/SearchResults/SearchResults';
 import { PassengerDetails } from './screens/PassengerDetails/PassengerDetails';
@@ -20,7 +21,7 @@ import { HybridTickets } from './screens/HybridTickets/HybridTickets';
 import { Discover } from './screens/Discover';
 import { Route, PassengerDetails as PassengerDetailsType, BookingDetails, Ticket as TicketType, RouteSubscription } from './types';
 
-type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
+type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'reset-password-demo' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
 
 function AppContent() {
   const { user, loading, isPasswordRecovery, clearRecoveryMode } = useAuth();
@@ -41,6 +42,8 @@ function AppContent() {
   useEffect(() => {
     if (location.pathname === '/reset-password') {
       setCurrentScreen('reset-password');
+    } else if (location.pathname === '/reset-password-demo') {
+      setCurrentScreen('reset-password-demo');
     }
   }, [location.pathname]);
 
@@ -214,6 +217,9 @@ function AppContent() {
             }}
           />
         );
+      }
+      if (currentScreen === 'reset-password-demo') {
+        return <ResetPasswordDemo />;
       }
       return (
         <Login
