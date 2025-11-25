@@ -54,8 +54,8 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
     setLoading(true);
 
     try {
-      const { data: users, error: queryError } = await supabase
-        .from('users')
+      const { data: userProfile, error: queryError } = await supabase
+        .from('user_profiles')
         .select('id')
         .eq('email', resetEmail)
         .maybeSingle();
@@ -66,7 +66,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
         return;
       }
 
-      if (!users) {
+      if (!userProfile) {
         setError('This email is not attached to a user');
         setLoading(false);
         return;
