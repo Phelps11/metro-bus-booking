@@ -18,6 +18,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
+    let recoveryDetected = false;
+
     // Check if URL contains recovery hash - must be done before getSession
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const type = hashParams.get('type');
@@ -25,8 +27,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     console.log('Hash params:', { type, hasAccessToken: !!accessToken });
 
-    if (type === 'recovery' || (type && accessToken)) {
+    if (type === 'recovery' && accessToken) {
       console.log('Setting password recovery mode');
+      recoveryDetected = true;
       setIsPasswordRecovery(true);
     }
 
@@ -39,12 +42,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.log('PASSWORD_RECOVERY event detected');
           setIsPasswordRecovery(true);
           setUser(session?.user ?? null);
-        } else if (event === 'SIGNED_IN' && isPasswordRecovery) {
-          // Keep recovery mode if we're in recovery flow
+          setLoading(false);
+        } else if (event === 'SIGNED_IN') {
+          // Don't clear recovery mode on sign-in during recovery flow
           setUser(session?.user ?? null);
+          if (!recoveryDetected) {
+            setLoading(false);
+          }
         } else if (event === 'SIGNED_OUT') {
           setUser(null);
           setIsPasswordRecovery(false);
+          setLoading(false);
         } else {
           setUser(session?.user ?? null);
         }
@@ -53,14 +61,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session?.user?.id);
-      // Don't update user if we're in recovery mode
-      if (!isPasswordRecovery) {
-        setUser(session?.user ?? null);
+      console.log('Initial session:', session?.user?.id, 'Recovery mode:', recoveryDetected);
+      setUser(session?.user ?? null);
+      if (!recoveryDetected) {
+        setLoading(false);
       } else {
-        setUser(session?.user ?? null);
+        // Keep loading state until PASSWORD_RECOVERY event fires
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
