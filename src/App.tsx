@@ -24,7 +24,7 @@ import { Route, PassengerDetails as PassengerDetailsType, BookingDetails, Ticket
 type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'reset-password-demo' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
 
 function AppContent() {
-  const { user, loading, isPasswordRecovery, clearRecoveryMode } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isOnboarded, setIsOnboarded] = useState(false);
@@ -168,19 +168,6 @@ function AppContent() {
             <p className="text-gray-600">Loading...</p>
           </div>
         </div>
-      );
-    }
-
-    if (isPasswordRecovery) {
-      return (
-        <ResetPassword
-          onResetSuccess={() => {
-            clearRecoveryMode();
-            navigate('/');
-            setCurrentScreen('login');
-            setNavigationHistory(['login']);
-          }}
-        />
       );
     }
 

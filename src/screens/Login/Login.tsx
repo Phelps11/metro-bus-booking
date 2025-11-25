@@ -55,7 +55,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
 
     try {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/#type=recovery`,
       });
 
       if (resetError) {
@@ -64,10 +64,10 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
         return;
       }
 
-      setResetMessage('If an account exists with this email, you will receive a password reset link.');
+      setResetMessage('If an account exists with this email, you will receive a 6-digit verification code.');
       setResetEmail('');
     } catch (err) {
-      setError('Failed to send reset email');
+      setError('Failed to send verification code');
     } finally {
       setLoading(false);
     }
@@ -99,7 +99,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
             </h1>
             <p className="text-gray-600">
               {resetMode
-                ? 'Enter your email to receive a password reset link'
+                ? 'Enter your email to receive a 6-digit verification code'
                 : 'Sign in to continue your journey'}
             </p>
           </div>
@@ -151,7 +151,7 @@ export const Login: React.FC<LoginProps> = ({ onLoginSuccess, onSignUpClick }) =
                     disabled={loading}
                     className="w-full bg-oxford-blue hover:bg-oxford-blue/90 text-white py-4 text-lg font-semibold disabled:bg-gray-400 mt-6"
                   >
-                    {loading ? 'Sending...' : 'Send Reset Link'}
+                    {loading ? 'Sending...' : 'Send Verification Code'}
                   </Button>
 
                   {/* Back to Login */}
