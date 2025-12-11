@@ -81,11 +81,13 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
     { name: "Profile", icon: "👤" },
   ];
 
-  // Routes data with structured from/to information
+  // Routes data with structured from/to information (matching database)
   const routes = [
-    { display: "Berger - Lekki Phase 1", from: "Berger", to: "Lekki Phase 1" },
-    { display: "Ikorodu - Lekki Phase 1", from: "Ikorodu", to: "Lekki Phase 1" },
-    { display: "TBS - Ikorodu", from: "TBS", to: "Ikorodu" },
+    { display: "Ikorodu - Victoria Island", from: "Ikorodu", to: "Victoria Island" },
+    { display: "Ikeja - Marina", from: "Ikeja", to: "Marina" },
+    { display: "Oshodi - Lekki Phase 1", from: "Oshodi", to: "Lekki Phase 1" },
+    { display: "Yaba - Victoria Island", from: "Yaba", to: "Victoria Island" },
+    { display: "Surulere - Ikeja", from: "Surulere", to: "Ikeja" },
   ];
 
   // Location suggestions for dropdown
