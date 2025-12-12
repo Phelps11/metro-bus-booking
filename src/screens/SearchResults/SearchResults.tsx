@@ -24,6 +24,9 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
   const [showStops, setShowStops] = useState<string | null>(null);
   const [subscribedRoutes, setSubscribedRoutes] = useState<Set<string>>(new Set());
   const [subscribingRoute, setSubscribingRoute] = useState<string | null>(null);
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+  const [selectedRouteForSubscription, setSelectedRouteForSubscription] = useState<Route | null>(null);
+  const [subscriptionDuration, setSubscriptionDuration] = useState<number>(4);
 
   const defaultStops = [
     'Berger Bus Stop',
@@ -129,12 +132,16 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
       return;
     }
 
-    setSubscribingRoute(route.id);
+    const isSubscribed = subscribedRoutes.has(route.id);
 
-    try {
-      const isSubscribed = subscribedRoutes.has(route.id);
+    if (isSubscribed) {
+      if (!confirm('Are you sure you want to unsubscribe from this route?')) {
+        return;
+      }
 
-      if (isSubscribed) {
+      setSubscribingRoute(route.id);
+
+      try {
         const { error } = await supabase
           .from('route_subscriptions')
           .delete()
@@ -148,23 +155,51 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
           next.delete(route.id);
           return next;
         });
-      } else {
-        const { error } = await supabase
-          .from('route_subscriptions')
-          .insert({
-            user_id: user.id,
-            route_id: route.id,
-            from_location: route.from,
-            to_location: route.to
-          });
-
-        if (error) throw error;
-
-        setSubscribedRoutes(prev => new Set(prev).add(route.id));
+        alert('Successfully unsubscribed from route');
+      } catch (error) {
+        console.error('Error unsubscribing:', error);
+        alert('Failed to unsubscribe. Please try again.');
+      } finally {
+        setSubscribingRoute(null);
       }
+    } else {
+      setSelectedRouteForSubscription(route);
+      setSubscriptionDuration(4);
+      setShowSubscribeModal(true);
+    }
+  };
+
+  const handleConfirmSubscription = async () => {
+    if (!user || !selectedRouteForSubscription) return;
+
+    setSubscribingRoute(selectedRouteForSubscription.id);
+
+    try {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(endDate.getDate() + (subscriptionDuration * 7));
+
+      const { error } = await supabase
+        .from('route_subscriptions')
+        .insert({
+          user_id: user.id,
+          route_id: selectedRouteForSubscription.id,
+          from_location: selectedRouteForSubscription.from,
+          to_location: selectedRouteForSubscription.to,
+          duration_weeks: subscriptionDuration,
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0]
+        });
+
+      if (error) throw error;
+
+      setSubscribedRoutes(prev => new Set(prev).add(selectedRouteForSubscription.id));
+      setShowSubscribeModal(false);
+      setSelectedRouteForSubscription(null);
+      alert(`Successfully subscribed for ${subscriptionDuration} weeks!`);
     } catch (error) {
-      console.error('Error toggling subscription:', error);
-      alert('Failed to update subscription. Please try again.');
+      console.error('Error subscribing:', error);
+      alert('Failed to subscribe. Please try again.');
     } finally {
       setSubscribingRoute(null);
     }
@@ -177,6 +212,107 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
       onNavigate={onNavigate}
       onHome={onHome}
     >
+      {/* Subscription Modal */}
+      {showSubscribeModal && selectedRouteForSubscription && (
+        <>
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-[100]"
+            onClick={() => setShowSubscribeModal(false)}
+          />
+          <Card className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-md bg-white shadow-lg border-2 border-oxford-blue z-[101]">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-oxford-blue text-lg">Subscribe to Route</h3>
+                <button
+                  onClick={() => setShowSubscribeModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <MapPin size={16} className="text-oxford-blue" />
+                    <span className="font-medium text-oxford-blue">
+                      {selectedRouteForSubscription.from} → {selectedRouteForSubscription.to}
+                    </span>
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    Get updates for this route
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Subscription Duration
+                  </label>
+                  <div className="space-y-2">
+                    {[2, 3, 4].map((weeks) => (
+                      <button
+                        key={weeks}
+                        onClick={() => setSubscriptionDuration(weeks)}
+                        className={`w-full p-3 rounded-lg border-2 flex items-center justify-between transition-colors ${
+                          subscriptionDuration === weeks
+                            ? 'border-oxford-blue bg-blue-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="text-left">
+                          <div className="font-medium text-oxford-blue">
+                            {weeks} Weeks
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Until {new Date(Date.now() + weeks * 7 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          subscriptionDuration === weeks
+                            ? 'border-oxford-blue bg-oxford-blue'
+                            : 'border-gray-300'
+                        }`}>
+                          {subscriptionDuration === weeks && (
+                            <div className="w-2 h-2 rounded-full bg-white"></div>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="text-sm text-green-800">
+                    <div className="font-medium mb-1">What you'll get:</div>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Route availability updates</li>
+                      <li>• Schedule change notifications</li>
+                      <li>• Quick access to this route</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSubscribeModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleConfirmSubscription}
+                    disabled={subscribingRoute === selectedRouteForSubscription.id}
+                    className="bg-oxford-blue hover:bg-oxford-blue/90"
+                  >
+                    {subscribingRoute === selectedRouteForSubscription.id ? 'Subscribing...' : 'Subscribe'}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
       {/* Header - Using flexbox auto layout for proper spacing */}
       <div className="bg-oxford-blue flex flex-col relative min-h-[120px]">
         {/* Top section with back button and title */}

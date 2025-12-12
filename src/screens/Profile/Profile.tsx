@@ -48,7 +48,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           from_location,
           to_location,
           is_active,
-          created_at
+          created_at,
+          duration_weeks,
+          start_date,
+          end_date
         `)
         .eq('user_id', user.id)
         .eq('is_active', true)
@@ -686,35 +689,61 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
               <div className="text-center py-4 text-gray-500">Loading...</div>
             ) : subscribedRoutes.length > 0 ? (
               <div className="space-y-3">
-                {subscribedRoutes.map((subscription) => (
-                  <div
-                    key={subscription.id}
-                    className="border border-gray-200 rounded-lg p-3 hover:border-oxford-blue transition-colors"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <MapPin size={16} className="text-green-600" />
-                          <span className="font-medium text-oxford-blue">
-                            {subscription.from_location} → {subscription.to_location}
-                          </span>
+                {subscribedRoutes.map((subscription) => {
+                  const endDate = new Date(subscription.end_date);
+                  const today = new Date();
+                  const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  const isExpiringSoon = daysRemaining <= 7;
+
+                  return (
+                    <div
+                      key={subscription.id}
+                      className="border border-gray-200 rounded-lg p-3 hover:border-oxford-blue transition-colors"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <MapPin size={16} className="text-green-600" />
+                            <span className="font-medium text-oxford-blue">
+                              {subscription.from_location} → {subscription.to_location}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            <div className="flex items-center space-x-2 text-xs">
+                              <Clock size={12} className="text-gray-500" />
+                              <span className="text-gray-600">
+                                {subscription.duration_weeks} week{subscription.duration_weeks > 1 ? 's' : ''} subscription
+                              </span>
+                            </div>
+                            <div className={`text-xs ${isExpiringSoon ? 'text-orange-600 font-medium' : 'text-gray-500'}`}>
+                              {daysRemaining > 0 ? (
+                                <>Expires on {endDate.toLocaleDateString()} ({daysRemaining} days remaining)</>
+                              ) : (
+                                <>Expired</>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          Subscribed on {new Date(subscription.created_at).toLocaleDateString()}
-                        </div>
+                        <Button
+                          onClick={() => handleUnsubscribe(subscription.id)}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1 ml-2"
+                        >
+                          <Trash2 size={14} />
+                          <span>Remove</span>
+                        </Button>
                       </div>
-                      <Button
-                        onClick={() => handleUnsubscribe(subscription.id)}
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1"
-                      >
-                        <Trash2 size={14} />
-                        <span>Remove</span>
-                      </Button>
+                      {isExpiringSoon && daysRemaining > 0 && (
+                        <div className="mt-2 pt-2 border-t border-gray-200">
+                          <div className="bg-orange-50 border border-orange-200 rounded px-2 py-1 text-xs text-orange-700">
+                            ⚠️ Expiring soon - Renew to continue receiving updates
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-6">
