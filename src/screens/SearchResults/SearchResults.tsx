@@ -169,39 +169,25 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
     }
   };
 
-  const handleConfirmSubscription = async () => {
-    if (!user || !selectedRouteForSubscription) return;
+  const handleConfirmSubscription = () => {
+    if (!selectedRouteForSubscription) return;
 
-    setSubscribingRoute(selectedRouteForSubscription.id);
+    const startDate = new Date();
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + (subscriptionDuration * 7));
 
-    try {
-      const startDate = new Date();
-      const endDate = new Date();
-      endDate.setDate(endDate.getDate() + (subscriptionDuration * 7));
+    const subscriptionData = {
+      route: selectedRouteForSubscription,
+      durationWeeks: subscriptionDuration,
+      startDate: startDate.toISOString().split('T')[0],
+      endDate: endDate.toISOString().split('T')[0],
+      isSubscription: true
+    };
 
-      const { error } = await supabase
-        .from('route_subscriptions')
-        .insert({
-          user_id: user.id,
-          route_id: selectedRouteForSubscription.id,
-          from_location: selectedRouteForSubscription.from,
-          to_location: selectedRouteForSubscription.to,
-          duration_weeks: subscriptionDuration,
-          start_date: startDate.toISOString().split('T')[0],
-          end_date: endDate.toISOString().split('T')[0]
-        });
+    setShowSubscribeModal(false);
 
-      if (error) throw error;
-
-      setSubscribedRoutes(prev => new Set(prev).add(selectedRouteForSubscription.id));
-      setShowSubscribeModal(false);
-      setSelectedRouteForSubscription(null);
-      alert(`Successfully subscribed for ${subscriptionDuration} weeks!`);
-    } catch (error) {
-      console.error('Error subscribing:', error);
-      alert('Failed to subscribe. Please try again.');
-    } finally {
-      setSubscribingRoute(null);
+    if (onNavigate) {
+      onNavigate('passenger-details', subscriptionData);
     }
   };
 

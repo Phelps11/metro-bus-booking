@@ -32,6 +32,12 @@ export interface BookingDetails {
   deboardingPoint: string;
   date: string;
   totalFare: number;
+  isSubscription?: boolean;
+  subscriptionData?: {
+    durationWeeks: number;
+    startDate: string;
+    endDate: string;
+  };
 }
 
 export interface Ticket {

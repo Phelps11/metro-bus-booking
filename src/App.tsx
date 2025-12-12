@@ -37,6 +37,7 @@ function AppContent() {
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
   const [hybridBookingData, setHybridBookingData] = useState<any>(null);
   const [hybridTickets, setHybridTickets] = useState<TicketType[]>([]);
+  const [currentSubscriptionData, setCurrentSubscriptionData] = useState<any>(null);
 
   // Check if we're on the reset-password route
   useEffect(() => {
@@ -67,8 +68,15 @@ function AppContent() {
 
     if (data) {
       if (screen === 'passenger-details') {
-        setSelectedRoute(data.route);
-        setSelectedDate(data.date || new Date().toISOString().split('T')[0]);
+        if (data.isSubscription) {
+          setCurrentSubscriptionData(data);
+          setSelectedRoute(data.route);
+          setSelectedDate(data.startDate);
+        } else {
+          setCurrentSubscriptionData(null);
+          setSelectedRoute(data.route);
+          setSelectedDate(data.date || new Date().toISOString().split('T')[0]);
+        }
       } else if (screen === 'search-results' && data.date) {
         setSelectedDate(data.date);
       } else if (screen === 'subscription-payment') {
@@ -107,15 +115,38 @@ function AppContent() {
 
   const handlePassengerDetailsSubmit = (details: PassengerDetailsType) => {
     if (selectedRoute) {
-      const booking: BookingDetails = {
-        route: selectedRoute,
-        passenger: details,
-        boardingPoint: details.boardingPoint,
-        deboardingPoint: details.deboardingPoint,
-        date: selectedDate || new Date().toISOString().split('T')[0],
-        totalFare: selectedRoute.price
-      };
-      setBookingDetails(booking);
+      if (currentSubscriptionData) {
+        const basePrice = selectedRoute.price;
+        const tripsPerWeek = 10;
+        const totalTrips = tripsPerWeek * currentSubscriptionData.durationWeeks;
+        const subscriptionPrice = Math.round(basePrice * totalTrips * 0.95);
+
+        const booking: BookingDetails = {
+          route: selectedRoute,
+          passenger: details,
+          boardingPoint: details.boardingPoint,
+          deboardingPoint: details.deboardingPoint,
+          date: currentSubscriptionData.startDate,
+          totalFare: subscriptionPrice,
+          isSubscription: true,
+          subscriptionData: {
+            durationWeeks: currentSubscriptionData.durationWeeks,
+            startDate: currentSubscriptionData.startDate,
+            endDate: currentSubscriptionData.endDate
+          }
+        };
+        setBookingDetails(booking);
+      } else {
+        const booking: BookingDetails = {
+          route: selectedRoute,
+          passenger: details,
+          boardingPoint: details.boardingPoint,
+          deboardingPoint: details.deboardingPoint,
+          date: selectedDate || new Date().toISOString().split('T')[0],
+          totalFare: selectedRoute.price
+        };
+        setBookingDetails(booking);
+      }
       setCurrentScreen('payment');
       setNavigationHistory(prev => [...prev, currentScreen]);
     }
@@ -123,22 +154,28 @@ function AppContent() {
 
   const handlePaymentComplete = () => {
     if (bookingDetails) {
-      const ticket: TicketType = {
-        id: Date.now().toString(),
-        ticketNumber: `MB${Date.now().toString().slice(-6)}`,
-        passengerName: bookingDetails.passenger.name,
-        route: `${bookingDetails.route.from} → ${bookingDetails.route.to}`,
-        boardingTime: bookingDetails.route.departureTime,
-        boardingPoint: bookingDetails.boardingPoint,
-        deboardingPoint: bookingDetails.deboardingPoint,
-        date: bookingDetails.date,
-        status: Math.random() > 0.7 ? 'delayed' : 'confirmed',
-        delayMinutes: Math.random() > 0.7 ? 30 : undefined,
-        barcode: `MB${Date.now().toString()}`
-      };
-      setCurrentTicket(ticket);
-      setCurrentScreen('ticket');
-      setNavigationHistory(prev => [...prev, currentScreen]);
+      if (bookingDetails.isSubscription) {
+        setCurrentScreen('profile');
+        setNavigationHistory(['profile']);
+        setCurrentSubscriptionData(null);
+      } else {
+        const ticket: TicketType = {
+          id: Date.now().toString(),
+          ticketNumber: `MB${Date.now().toString().slice(-6)}`,
+          passengerName: bookingDetails.passenger.name,
+          route: `${bookingDetails.route.from} → ${bookingDetails.route.to}`,
+          boardingTime: bookingDetails.route.departureTime,
+          boardingPoint: bookingDetails.boardingPoint,
+          deboardingPoint: bookingDetails.deboardingPoint,
+          date: bookingDetails.date,
+          status: Math.random() > 0.7 ? 'delayed' : 'confirmed',
+          delayMinutes: Math.random() > 0.7 ? 30 : undefined,
+          barcode: `MB${Date.now().toString()}`
+        };
+        setCurrentTicket(ticket);
+        setCurrentScreen('ticket');
+        setNavigationHistory(prev => [...prev, currentScreen]);
+      }
     }
   };
 

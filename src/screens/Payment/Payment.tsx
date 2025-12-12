@@ -54,35 +54,54 @@ export const Payment: React.FC<PaymentProps> = ({
     setProcessing(true);
 
     try {
-      const ticketNumber = `MB${Date.now().toString().slice(-8)}`;
+      if (bookingDetails.isSubscription && bookingDetails.subscriptionData) {
+        const { error } = await supabase
+          .from('route_subscriptions')
+          .insert({
+            user_id: user.id,
+            route_id: bookingDetails.route.id,
+            from_location: bookingDetails.route.from,
+            to_location: bookingDetails.route.to,
+            duration_weeks: bookingDetails.subscriptionData.durationWeeks,
+            start_date: bookingDetails.subscriptionData.startDate,
+            end_date: bookingDetails.subscriptionData.endDate,
+            is_active: true
+          });
 
-      const { error } = await supabase
-        .from('bookings')
-        .insert({
-          user_id: user.id,
-          route_id: bookingDetails.route.id,
-          passenger_name: bookingDetails.passenger.name,
-          passenger_age: parseInt(bookingDetails.passenger.age),
-          passenger_gender: bookingDetails.passenger.gender,
-          passenger_email: bookingDetails.passenger.email,
-          passenger_phone: bookingDetails.passenger.phoneNumber,
-          boarding_point: bookingDetails.boardingPoint,
-          deboarding_point: bookingDetails.deboardingPoint,
-          booking_date: bookingDetails.date,
-          total_fare: bookingDetails.totalFare,
-          ticket_number: ticketNumber,
-          status: 'confirmed',
-          subscribe_to_updates: bookingDetails.passenger.subscribeToUpdates,
-          receive_alerts: bookingDetails.passenger.receiveAlerts
-        });
+        if (error) throw error;
 
-      if (error) throw error;
+        alert(`Successfully subscribed for ${bookingDetails.subscriptionData.durationWeeks} weeks!`);
+      } else {
+        const ticketNumber = `MB${Date.now().toString().slice(-8)}`;
+
+        const { error } = await supabase
+          .from('bookings')
+          .insert({
+            user_id: user.id,
+            route_id: bookingDetails.route.id,
+            passenger_name: bookingDetails.passenger.name,
+            passenger_age: parseInt(bookingDetails.passenger.age),
+            passenger_gender: bookingDetails.passenger.gender,
+            passenger_email: bookingDetails.passenger.email,
+            passenger_phone: bookingDetails.passenger.phoneNumber,
+            boarding_point: bookingDetails.boardingPoint,
+            deboarding_point: bookingDetails.deboardingPoint,
+            booking_date: bookingDetails.date,
+            total_fare: bookingDetails.totalFare,
+            ticket_number: ticketNumber,
+            status: 'confirmed',
+            subscribe_to_updates: bookingDetails.passenger.subscribeToUpdates,
+            receive_alerts: bookingDetails.passenger.receiveAlerts
+          });
+
+        if (error) throw error;
+      }
 
       setTimeout(() => {
         onPaymentComplete();
       }, 500);
     } catch (error) {
-      console.error('Error saving booking:', error);
+      console.error('Error processing payment:', error);
       alert('Failed to process payment. Please try again.');
     } finally {
       setProcessing(false);
@@ -117,18 +136,56 @@ export const Payment: React.FC<PaymentProps> = ({
         {/* Price Summary */}
         <Card className="bg-white shadow-md">
           <CardContent className="p-4">
-            <h3 className="font-semibold text-oxford-blue mb-4">Payment Summary</h3>
-            
+            <h3 className="font-semibold text-oxford-blue mb-4">
+              {bookingDetails.isSubscription ? 'Subscription Summary' : 'Payment Summary'}
+            </h3>
+
             <div className="space-y-2">
-              <div className="flex justify-between">
-                <span>Route: {bookingDetails.route.from} → {bookingDetails.route.to}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Passenger: {bookingDetails.passenger.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Date: {bookingDetails.date}</span>
-              </div>
+              {bookingDetails.isSubscription ? (
+                <>
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
+                    <div className="text-sm font-medium text-blue-800 mb-1">Route Subscription</div>
+                    <div className="text-xs text-blue-600">
+                      {bookingDetails.subscriptionData?.durationWeeks} weeks of unlimited travel
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Route:</span>
+                    <span className="font-medium">{bookingDetails.route.from} → {bookingDetails.route.to}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Passenger:</span>
+                    <span className="font-medium">{bookingDetails.passenger.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Duration:</span>
+                    <span className="font-medium">{bookingDetails.subscriptionData?.durationWeeks} weeks</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Start Date:</span>
+                    <span className="font-medium">{new Date(bookingDetails.subscriptionData?.startDate || '').toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>End Date:</span>
+                    <span className="font-medium">{new Date(bookingDetails.subscriptionData?.endDate || '').toLocaleDateString()}</span>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-xs text-green-700">
+                    5% discount applied on subscription
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span>Route: {bookingDetails.route.from} → {bookingDetails.route.to}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Passenger: {bookingDetails.passenger.name}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Date: {bookingDetails.date}</span>
+                  </div>
+                </>
+              )}
               <div className="border-t pt-2 mt-2">
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Amount</span>
