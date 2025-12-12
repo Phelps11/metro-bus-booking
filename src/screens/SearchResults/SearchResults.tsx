@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Clock, Users, MapPin, Navigation, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Clock, Users, MapPin, Navigation, ChevronDown, ChevronUp, Bell, BellOff } from 'lucide-react';
 import { MobileLayout } from '../../components/Layout/MobileLayout';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { Route } from '../../types';
+import { supabase } from '../../lib/supabase';
 
 interface SearchResultsProps {
   onBack: () => void;
@@ -16,9 +18,12 @@ interface SearchResultsProps {
 
 export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRoute, selectedDate, onHome, onNavigate }) => {
   const { searchResults } = useApp();
+  const { user } = useAuth();
 
   const [expandedRoute, setExpandedRoute] = useState<string | null>(null);
   const [showStops, setShowStops] = useState<string | null>(null);
+  const [subscribedRoutes, setSubscribedRoutes] = useState<Set<string>>(new Set());
+  const [subscribingRoute, setSubscribingRoute] = useState<string | null>(null);
 
   const defaultStops = [
     'Berger Bus Stop',
@@ -85,12 +90,84 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
     }
   ];
 
+  // Load user's subscriptions
+  useEffect(() => {
+    const loadSubscriptions = async () => {
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('route_subscriptions')
+          .select('route_id')
+          .eq('user_id', user.id)
+          .eq('is_active', true);
+
+        if (error) throw error;
+
+        if (data) {
+          setSubscribedRoutes(new Set(data.map(sub => sub.route_id)));
+        }
+      } catch (error) {
+        console.error('Error loading subscriptions:', error);
+      }
+    };
+
+    loadSubscriptions();
+  }, [user]);
+
   const toggleExpand = (routeId: string) => {
     setExpandedRoute(expandedRoute === routeId ? null : routeId);
   };
 
   const toggleStops = (routeId: string) => {
     setShowStops(showStops === routeId ? null : routeId);
+  };
+
+  const handleSubscribeToggle = async (route: Route) => {
+    if (!user) {
+      alert('Please log in to subscribe to routes');
+      return;
+    }
+
+    setSubscribingRoute(route.id);
+
+    try {
+      const isSubscribed = subscribedRoutes.has(route.id);
+
+      if (isSubscribed) {
+        const { error } = await supabase
+          .from('route_subscriptions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('route_id', route.id);
+
+        if (error) throw error;
+
+        setSubscribedRoutes(prev => {
+          const next = new Set(prev);
+          next.delete(route.id);
+          return next;
+        });
+      } else {
+        const { error } = await supabase
+          .from('route_subscriptions')
+          .insert({
+            user_id: user.id,
+            route_id: route.id,
+            from_location: route.from,
+            to_location: route.to
+          });
+
+        if (error) throw error;
+
+        setSubscribedRoutes(prev => new Set(prev).add(route.id));
+      }
+    } catch (error) {
+      console.error('Error toggling subscription:', error);
+      alert('Failed to update subscription. Please try again.');
+    } finally {
+      setSubscribingRoute(null);
+    }
   };
 
   return (
@@ -217,8 +294,33 @@ export const SearchResults: React.FC<SearchResultsProps> = ({ onBack, onSelectRo
                 </div>
               )}
 
-              {/* Select Button */}
-              <div className="mt-4 pt-3 border-t">
+              {/* Action Buttons */}
+              <div className="mt-4 pt-3 border-t space-y-2">
+                {/* Subscribe Button */}
+                <Button
+                  onClick={() => handleSubscribeToggle(route)}
+                  disabled={subscribingRoute === route.id}
+                  variant="outline"
+                  className={`w-full py-2 flex items-center justify-center gap-2 ${
+                    subscribedRoutes.has(route.id)
+                      ? 'border-oxford-blue text-oxford-blue hover:bg-oxford-blue hover:text-white'
+                      : 'border-gray-300 text-gray-700 hover:border-oxford-blue hover:text-oxford-blue'
+                  }`}
+                >
+                  {subscribedRoutes.has(route.id) ? (
+                    <>
+                      <Bell size={16} className="fill-current" />
+                      <span>Subscribed</span>
+                    </>
+                  ) : (
+                    <>
+                      <BellOff size={16} />
+                      <span>Subscribe to Route</span>
+                    </>
+                  )}
+                </Button>
+
+                {/* Select Button */}
                 <Button
                   onClick={() => onSelectRoute(route, selectedDate)}
                   className="w-full bg-green-600 hover:bg-green-700 text-white py-2"

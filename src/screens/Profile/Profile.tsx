@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Phone, Mail, Shield, MapPin, Calendar, Percent, Clock, ArrowLeft, Wallet, Plus, CreditCard, Building2, MessageCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { User, Phone, Mail, Shield, MapPin, Calendar, Percent, Clock, ArrowLeft, Wallet, Plus, CreditCard, Building2, MessageCircle, ChevronDown, ChevronUp, Bell, Trash2 } from 'lucide-react';
 import { MobileLayout } from '../../components/Layout/MobileLayout';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
@@ -31,8 +31,38 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   useEffect(() => {
     if (user) {
       fetchUserProfile();
+      loadSubscribedRoutes();
     }
   }, [user]);
+
+  const loadSubscribedRoutes = async () => {
+    if (!user) return;
+
+    setLoadingSubscriptions(true);
+    try {
+      const { data, error } = await supabase
+        .from('route_subscriptions')
+        .select(`
+          id,
+          route_id,
+          from_location,
+          to_location,
+          is_active,
+          created_at
+        `)
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setSubscribedRoutes(data || []);
+    } catch (error) {
+      console.error('Error loading subscribed routes:', error);
+    } finally {
+      setLoadingSubscriptions(false);
+    }
+  };
 
   useEffect(() => {
     if (!isEditing) {
@@ -88,6 +118,10 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   const [supportSubject, setSupportSubject] = useState('');
   const [sendingSupport, setSendingSupport] = useState(false);
   const [isSupportExpanded, setIsSupportExpanded] = useState(false);
+
+  // Subscribed routes states
+  const [subscribedRoutes, setSubscribedRoutes] = useState<any[]>([]);
+  const [loadingSubscriptions, setLoadingSubscriptions] = useState(false);
 
   // Quick booking states
   const [showQuickBooking, setShowQuickBooking] = useState(false);
@@ -282,7 +316,7 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
   const handleQuickBooking = () => {
     if (selectedRoute && selectedDate && !dateError) {
       const selectedDateObj = createDateFromString(selectedDate);
-      
+
       if (!isWorkingDay(selectedDateObj)) {
         setDateError('Service is only available Monday to Friday for working commuters');
         return;
@@ -324,10 +358,31 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           availableSeats: 15
         }
       ];
-      
+
       setSearchResults(mockResults);
       setShowQuickBooking(false);
       onNavigate('search-results');
+    }
+  };
+
+  const handleUnsubscribe = async (subscriptionId: string) => {
+    if (!confirm('Are you sure you want to unsubscribe from this route?')) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('route_subscriptions')
+        .delete()
+        .eq('id', subscriptionId);
+
+      if (error) throw error;
+
+      setSubscribedRoutes(prev => prev.filter(sub => sub.id !== subscriptionId));
+      alert('Successfully unsubscribed from route');
+    } catch (error) {
+      console.error('Error unsubscribing:', error);
+      alert('Failed to unsubscribe. Please try again.');
     }
   };
 
@@ -618,6 +673,60 @@ export const Profile: React.FC<ProfileProps> = ({ activeScreen, onNavigate, onBa
           </Card>
           </>
         )}
+
+        {/* Subscribed Routes */}
+        <Card className="bg-white shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center space-x-2 mb-4">
+              <Bell size={20} className="text-oxford-blue" />
+              <h3 className="font-semibold text-oxford-blue">My Subscribed Routes</h3>
+            </div>
+
+            {loadingSubscriptions ? (
+              <div className="text-center py-4 text-gray-500">Loading...</div>
+            ) : subscribedRoutes.length > 0 ? (
+              <div className="space-y-3">
+                {subscribedRoutes.map((subscription) => (
+                  <div
+                    key={subscription.id}
+                    className="border border-gray-200 rounded-lg p-3 hover:border-oxford-blue transition-colors"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <MapPin size={16} className="text-green-600" />
+                          <span className="font-medium text-oxford-blue">
+                            {subscription.from_location} → {subscription.to_location}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Subscribed on {new Date(subscription.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => handleUnsubscribe(subscription.id)}
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 border-red-300 hover:bg-red-50 flex items-center gap-1"
+                      >
+                        <Trash2 size={14} />
+                        <span>Remove</span>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <Bell size={40} className="mx-auto text-gray-300 mb-2" />
+                <p className="text-gray-500 mb-2">No subscribed routes yet</p>
+                <p className="text-sm text-gray-400">
+                  Subscribe to routes from the search results to get updates
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Contact Information */}
         <Card className="bg-white shadow-md">
