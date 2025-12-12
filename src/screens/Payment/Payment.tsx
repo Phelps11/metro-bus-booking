@@ -23,11 +23,6 @@ export const Payment: React.FC<PaymentProps> = ({
   onHome,
   onNavigate
 }) => {
-  console.log('=== Payment Screen Render ===');
-  console.log('bookingDetails:', bookingDetails);
-  console.log('totalFare:', bookingDetails.totalFare);
-  console.log('isSubscription:', bookingDetails.isSubscription);
-
   const { user } = useAuth();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'wallet' | 'transfer'>('card');
   const [promoCode, setPromoCode] = useState('');
@@ -200,6 +195,18 @@ export const Payment: React.FC<PaymentProps> = ({
                 </>
               )}
               <div className="border-t pt-2 mt-2">
+                {bookingDetails.isSubscription && bookingDetails.subscriptionData?.durationWeeks === 4 && (
+                  <>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="text-gray-600">₦{Math.round(bookingDetails.totalFare / 0.93).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-green-600 font-medium">4-Week Discount (7%):</span>
+                      <span className="text-green-600 font-medium">-₦{Math.round((bookingDetails.totalFare / 0.93) * 0.07).toLocaleString()}</span>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-lg font-semibold">Total Amount</span>
                   <span className="text-2xl font-bold text-oxford-blue">

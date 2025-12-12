@@ -67,18 +67,12 @@ function AppContent() {
     setCurrentScreen(newScreen);
 
     if (data) {
-      console.log('=== Navigation with data ===');
-      console.log('Screen:', screen);
-      console.log('Data:', data);
-
       if (screen === 'passenger-details') {
         if (data.isSubscription) {
-          console.log('Setting subscription data for passenger details');
           setCurrentSubscriptionData(data);
           setSelectedRoute(data.route);
           setSelectedDate(data.startDate);
         } else {
-          console.log('Setting regular booking data for passenger details');
           setCurrentSubscriptionData(null);
           setSelectedRoute(data.route);
           setSelectedDate(data.date || new Date().toISOString().split('T')[0]);
@@ -122,22 +116,16 @@ function AppContent() {
   const handlePassengerDetailsSubmit = (details: PassengerDetailsType) => {
     if (!selectedRoute) return;
 
-    console.log('=== Passenger Details Submit ===');
-    console.log('currentSubscriptionData:', currentSubscriptionData);
-    console.log('selectedRoute:', selectedRoute);
-
     let booking: BookingDetails;
 
     if (currentSubscriptionData?.isSubscription && currentSubscriptionData?.durationWeeks) {
       const basePrice = selectedRoute.price;
       const weeksMultiplier = 6;
-      const subscriptionPrice = basePrice * currentSubscriptionData.durationWeeks * weeksMultiplier;
+      let subscriptionPrice = basePrice * currentSubscriptionData.durationWeeks * weeksMultiplier;
 
-      console.log('SUBSCRIPTION BOOKING:');
-      console.log('- Base price:', basePrice);
-      console.log('- Duration weeks:', currentSubscriptionData.durationWeeks);
-      console.log('- Multiplier:', weeksMultiplier);
-      console.log('- Calculated price:', subscriptionPrice);
+      if (currentSubscriptionData.durationWeeks === 4) {
+        subscriptionPrice = subscriptionPrice * 0.93;
+      }
 
       booking = {
         route: selectedRoute,
@@ -145,7 +133,7 @@ function AppContent() {
         boardingPoint: details.boardingPoint,
         deboardingPoint: details.deboardingPoint,
         date: currentSubscriptionData.startDate,
-        totalFare: subscriptionPrice,
+        totalFare: Math.round(subscriptionPrice),
         isSubscription: true,
         subscriptionData: {
           durationWeeks: currentSubscriptionData.durationWeeks,
@@ -154,7 +142,6 @@ function AppContent() {
         }
       };
     } else {
-      console.log('REGULAR BOOKING - totalFare:', selectedRoute.price);
       booking = {
         route: selectedRoute,
         passenger: details,
@@ -165,7 +152,6 @@ function AppContent() {
       };
     }
 
-    console.log('Final booking object:', booking);
     setBookingDetails(booking);
     setCurrentScreen('payment');
     setNavigationHistory(prev => [...prev, currentScreen]);
