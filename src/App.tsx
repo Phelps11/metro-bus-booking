@@ -281,6 +281,7 @@ function AppContent() {
         return selectedRoute ? (
           <PassengerDetails
             selectedRoute={selectedRoute}
+            subscriptionData={currentSubscriptionData}
             onBack={handleBackNavigation}
             onContinue={handlePassengerDetailsSubmit}
             onNavigate={handleNavigation}

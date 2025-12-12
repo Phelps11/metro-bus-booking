@@ -11,6 +11,7 @@ import { PassengerDetails as PassengerDetailsType, Route } from '../../types';
 
 interface PassengerDetailsProps {
   selectedRoute: Route;
+  subscriptionData?: any;
   onBack: () => void;
   onContinue: (details: PassengerDetailsType) => void;
   onHome?: () => void;
@@ -19,6 +20,7 @@ interface PassengerDetailsProps {
 
 export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
   selectedRoute,
+  subscriptionData,
   onBack,
   onContinue,
   onHome,
@@ -241,12 +243,37 @@ export const PassengerDetails: React.FC<PassengerDetailsProps> = ({
         {/* Total Fare */}
         <Card className="bg-white shadow-md">
           <CardContent className="p-4">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-medium">Total Fare</span>
-              <span className="text-2xl font-bold text-oxford-blue">
-                ₦{selectedRoute.price.toLocaleString()}
-              </span>
-            </div>
+            {subscriptionData?.isSubscription && subscriptionData?.durationWeeks ? (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm text-gray-600">
+                  <span>Base Price:</span>
+                  <span>₦{selectedRoute.price.toLocaleString()} × {subscriptionData.durationWeeks * 6} trips</span>
+                </div>
+                {subscriptionData.durationWeeks === 4 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>4-Week Discount (7%):</span>
+                    <span>-₦{Math.round((selectedRoute.price * subscriptionData.durationWeeks * 6) * 0.07).toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between items-center">
+                  <span className="text-lg font-medium">Total Subscription Fare</span>
+                  <span className="text-2xl font-bold text-oxford-blue">
+                    ₦{(() => {
+                      const basePrice = selectedRoute.price * subscriptionData.durationWeeks * 6;
+                      const discount = subscriptionData.durationWeeks === 4 ? 0.93 : 1;
+                      return Math.round(basePrice * discount).toLocaleString();
+                    })()}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-medium">Total Fare</span>
+                <span className="text-2xl font-bold text-oxford-blue">
+                  ₦{selectedRoute.price.toLocaleString()}
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
