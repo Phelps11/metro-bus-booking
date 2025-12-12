@@ -114,41 +114,43 @@ function AppContent() {
   };
 
   const handlePassengerDetailsSubmit = (details: PassengerDetailsType) => {
-    if (selectedRoute) {
-      if (currentSubscriptionData) {
-        const basePrice = selectedRoute.price;
-        const weeksMultiplier = 6;
-        const subscriptionPrice = Math.round(basePrice * currentSubscriptionData.durationWeeks * weeksMultiplier);
+    if (!selectedRoute) return;
 
-        const booking: BookingDetails = {
-          route: selectedRoute,
-          passenger: details,
-          boardingPoint: details.boardingPoint,
-          deboardingPoint: details.deboardingPoint,
-          date: currentSubscriptionData.startDate,
-          totalFare: subscriptionPrice,
-          isSubscription: true,
-          subscriptionData: {
-            durationWeeks: currentSubscriptionData.durationWeeks,
-            startDate: currentSubscriptionData.startDate,
-            endDate: currentSubscriptionData.endDate
-          }
-        };
-        setBookingDetails(booking);
-      } else {
-        const booking: BookingDetails = {
-          route: selectedRoute,
-          passenger: details,
-          boardingPoint: details.boardingPoint,
-          deboardingPoint: details.deboardingPoint,
-          date: selectedDate || new Date().toISOString().split('T')[0],
-          totalFare: selectedRoute.price
-        };
-        setBookingDetails(booking);
-      }
-      setCurrentScreen('payment');
-      setNavigationHistory(prev => [...prev, currentScreen]);
+    let booking: BookingDetails;
+
+    if (currentSubscriptionData?.isSubscription && currentSubscriptionData?.durationWeeks) {
+      const basePrice = selectedRoute.price;
+      const weeksMultiplier = 6;
+      const subscriptionPrice = basePrice * currentSubscriptionData.durationWeeks * weeksMultiplier;
+
+      booking = {
+        route: selectedRoute,
+        passenger: details,
+        boardingPoint: details.boardingPoint,
+        deboardingPoint: details.deboardingPoint,
+        date: currentSubscriptionData.startDate,
+        totalFare: subscriptionPrice,
+        isSubscription: true,
+        subscriptionData: {
+          durationWeeks: currentSubscriptionData.durationWeeks,
+          startDate: currentSubscriptionData.startDate,
+          endDate: currentSubscriptionData.endDate
+        }
+      };
+    } else {
+      booking = {
+        route: selectedRoute,
+        passenger: details,
+        boardingPoint: details.boardingPoint,
+        deboardingPoint: details.deboardingPoint,
+        date: selectedDate || new Date().toISOString().split('T')[0],
+        totalFare: selectedRoute.price
+      };
     }
+
+    setBookingDetails(booking);
+    setCurrentScreen('payment');
+    setNavigationHistory(prev => [...prev, currentScreen]);
   };
 
   const handlePaymentComplete = () => {
