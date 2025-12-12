@@ -23,6 +23,11 @@ export const Payment: React.FC<PaymentProps> = ({
   onHome,
   onNavigate
 }) => {
+  console.log('=== Payment Screen Render ===');
+  console.log('bookingDetails:', bookingDetails);
+  console.log('totalFare:', bookingDetails.totalFare);
+  console.log('isSubscription:', bookingDetails.isSubscription);
+
   const { user } = useAuth();
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'wallet' | 'transfer'>('card');
   const [promoCode, setPromoCode] = useState('');
