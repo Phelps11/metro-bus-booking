@@ -21,34 +21,52 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [trips, setTrips] = useState<Ticket[]>([]);
+  const [subscriptions, setSubscriptions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (user) {
-      fetchBookings();
+      fetchBookingsAndSubscriptions();
     }
   }, [user]);
 
-  const fetchBookings = async () => {
+  const fetchBookingsAndSubscriptions = async () => {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          *,
-          routes (
-            from_location,
-            to_location
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('booking_date', { ascending: false });
+      const [bookingsResult, subscriptionsResult] = await Promise.all([
+        supabase
+          .from('bookings')
+          .select(`
+            *,
+            routes (
+              from_location,
+              to_location,
+              price
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('booking_date', { ascending: false }),
 
-      if (error) throw error;
+        supabase
+          .from('route_subscriptions')
+          .select(`
+            *,
+            routes (
+              from_location,
+              to_location,
+              price
+            )
+          `)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+      ]);
 
-      if (data) {
-        const formattedTrips: Ticket[] = data.map((booking: any) => ({
+      if (bookingsResult.error) throw bookingsResult.error;
+      if (subscriptionsResult.error) throw subscriptionsResult.error;
+
+      if (bookingsResult.data) {
+        const formattedTrips: Ticket[] = bookingsResult.data.map((booking: any) => ({
           id: booking.id,
           ticketNumber: booking.ticket_number,
           passengerName: booking.passenger_name,
@@ -59,9 +77,30 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
           date: booking.booking_date,
           status: booking.status as 'confirmed' | 'delayed' | 'cancelled',
           delayMinutes: booking.delay_minutes,
-          barcode: booking.ticket_number
+          barcode: booking.ticket_number,
+          isSubscription: false
         }));
         setTrips(formattedTrips);
+      }
+
+      if (subscriptionsResult.data) {
+        const formattedSubscriptions = subscriptionsResult.data.map((sub: any) => ({
+          id: sub.id,
+          ticketNumber: `SUB${sub.id.slice(0, 6).toUpperCase()}`,
+          passengerName: userProfile.fullName,
+          route: `${sub.from_location} → ${sub.to_location}`,
+          boardingTime: '06:00',
+          boardingPoint: sub.from_location,
+          deboardingPoint: sub.to_location,
+          date: sub.start_date,
+          endDate: sub.end_date,
+          status: sub.is_active && new Date(sub.end_date) >= new Date() ? 'confirmed' : 'cancelled',
+          barcode: `SUB${sub.id.slice(0, 10).toUpperCase()}`,
+          isSubscription: true,
+          durationWeeks: sub.duration_weeks,
+          price: sub.routes?.price || 0
+        }));
+        setSubscriptions(formattedSubscriptions);
       }
     } catch (error) {
       console.error('Error fetching bookings:', error);
@@ -70,7 +109,9 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
     }
   };
 
-  const mockTrips: Ticket[] = trips.length > 0 ? trips : [
+  const allTripsAndSubscriptions = [...trips, ...subscriptions];
+
+  const mockTrips: Ticket[] = allTripsAndSubscriptions.length > 0 ? allTripsAndSubscriptions : [
     {
       id: '1',
       ticketNumber: 'MB123456',
@@ -217,6 +258,13 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
   };
 
   const getTripTypeIcon = (ticketNumber: string) => {
+    if (ticketNumber.startsWith('SUB')) {
+      return (
+        <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+          <span className="text-xs font-bold text-green-600">$</span>
+        </div>
+      );
+    }
     if (ticketNumber.startsWith('HB')) {
       return (
         <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
@@ -441,7 +489,7 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
         <Card className="bg-gray-50 border-gray-200">
           <CardContent className="p-3">
             <h4 className="font-medium text-gray-700 mb-2 text-sm">Trip Types</h4>
-            <div className="flex justify-between text-xs">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 bg-blue-100 rounded-full flex items-center justify-center">
                   <span className="text-xs font-bold text-blue-600">S</span>
@@ -449,10 +497,16 @@ export const MyTrips: React.FC<MyTripsProps> = ({ activeScreen, onNavigate, onHo
                 <span className="text-gray-600">Single Trip</span>
               </div>
               <div className="flex items-center space-x-1">
+                <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-green-600">$</span>
+                </div>
+                <span className="text-gray-600">Subscription</span>
+              </div>
+              <div className="flex items-center space-x-1">
                 <div className="w-4 h-4 bg-purple-100 rounded-full flex items-center justify-center">
                   <span className="text-xs font-bold text-purple-600">H</span>
                 </div>
-                <span className="text-gray-600">Hybrid Booking</span>
+                <span className="text-gray-600">Hybrid</span>
               </div>
             </div>
           </CardContent>

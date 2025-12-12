@@ -33,7 +33,7 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
           </button>
           
           <h1 className="[font-family:'Lato',Helvetica] font-bold text-white text-xl">
-            Your Ticket
+            {ticket.isSubscription ? 'Subscription Pass' : 'Your Ticket'}
           </h1>
 
           <div className="absolute right-4 flex space-x-2">
@@ -113,30 +113,89 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
 
               {/* Trip Details */}
               <div className="border-t border-b border-dashed border-gray-300 py-4 space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Route</span>
-                  <span className="font-medium">{ticket.route}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Passenger</span>
-                  <span className="font-medium">{ticket.passengerName}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Boarding Point</span>
-                  <span className="font-medium">{ticket.boardingPoint}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Deboarding Point</span>
-                  <span className="font-medium">{ticket.deboardingPoint}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Ticket Number</span>
-                  <span className="font-medium font-mono">{ticket.ticketNumber}</span>
-                </div>
+                {ticket.isSubscription ? (
+                  <>
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                      <div className="text-sm font-medium text-green-800 text-center">
+                        {ticket.durationWeeks} Week Subscription Pass
+                      </div>
+                      {ticket.durationWeeks === 4 && (
+                        <div className="text-xs text-green-600 text-center mt-1">
+                          7% discount applied
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Route</span>
+                      <span className="font-medium">{ticket.route}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subscriber</span>
+                      <span className="font-medium">{ticket.passengerName}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Valid From</span>
+                      <span className="font-medium">
+                        {createDateFromString(ticket.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Valid Until</span>
+                      <span className="font-medium">
+                        {ticket.endDate && createDateFromString(ticket.endDate).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Duration</span>
+                      <span className="font-medium">{ticket.durationWeeks} weeks (~{ticket.durationWeeks * 6} trips)</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Subscription ID</span>
+                      <span className="font-medium font-mono">{ticket.ticketNumber}</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Route</span>
+                      <span className="font-medium">{ticket.route}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Passenger</span>
+                      <span className="font-medium">{ticket.passengerName}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Boarding Point</span>
+                      <span className="font-medium">{ticket.boardingPoint}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Deboarding Point</span>
+                      <span className="font-medium">{ticket.deboardingPoint}</span>
+                    </div>
+
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Ticket Number</span>
+                      <span className="font-medium font-mono">{ticket.ticketNumber}</span>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Barcode Section */}
@@ -166,16 +225,29 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
         </Card>
 
         {/* Important Information */}
-        <Card className="bg-blue-50 border-blue-200">
+        <Card className={ticket.isSubscription ? "bg-green-50 border-green-200" : "bg-blue-50 border-blue-200"}>
           <CardContent className="p-4">
-            <h3 className="font-semibold text-blue-800 mb-2">Important Information</h3>
-            <ul className="text-sm text-blue-700 space-y-1">
-              <li>• Please arrive at the boarding point 15 minutes early</li>
-              <li>• Have this ticket ready for scanning</li>
-              <li>• Contact support for any changes or cancellations</li>
-              <li>• Keep your phone charged for ticket verification</li>
-              <li>• Look for the white Toyota Hiace with license plate AKD 111 MB</li>
-            </ul>
+            <h3 className={`font-semibold mb-2 ${ticket.isSubscription ? "text-green-800" : "text-blue-800"}`}>
+              Important Information
+            </h3>
+            {ticket.isSubscription ? (
+              <ul className="text-sm text-green-700 space-y-1">
+                <li>• This pass is valid for {ticket.durationWeeks} weeks from the start date</li>
+                <li>• Show this pass when boarding on any day during the valid period</li>
+                <li>• Valid for approximately {ticket.durationWeeks * 6} trips (Mon-Fri)</li>
+                <li>• Subscription auto-renewal can be managed in your profile</li>
+                <li>• Contact support for any changes or questions</li>
+                <li>• Keep your phone charged for pass verification</li>
+              </ul>
+            ) : (
+              <ul className="text-sm text-blue-700 space-y-1">
+                <li>• Please arrive at the boarding point 15 minutes early</li>
+                <li>• Have this ticket ready for scanning</li>
+                <li>• Contact support for any changes or cancellations</li>
+                <li>• Keep your phone charged for ticket verification</li>
+                <li>• Look for the white Toyota Hiace with license plate AKD 111 MB</li>
+              </ul>
+            )}
           </CardContent>
         </Card>
 

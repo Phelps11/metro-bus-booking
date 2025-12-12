@@ -157,11 +157,28 @@ function AppContent() {
     setNavigationHistory(prev => [...prev, currentScreen]);
   };
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
     if (bookingDetails) {
-      if (bookingDetails.isSubscription) {
-        setCurrentScreen('profile');
-        setNavigationHistory(['profile']);
+      if (bookingDetails.isSubscription && bookingDetails.subscriptionData) {
+        const subscriptionTicket: TicketType = {
+          id: Date.now().toString(),
+          ticketNumber: `SUB${Date.now().toString().slice(-6)}`,
+          passengerName: bookingDetails.passenger.name,
+          route: `${bookingDetails.route.from} → ${bookingDetails.route.to}`,
+          boardingTime: bookingDetails.route.departureTime,
+          boardingPoint: bookingDetails.boardingPoint,
+          deboardingPoint: bookingDetails.deboardingPoint,
+          date: bookingDetails.subscriptionData.startDate,
+          endDate: bookingDetails.subscriptionData.endDate,
+          status: 'confirmed',
+          barcode: `SUB${Date.now().toString()}`,
+          isSubscription: true,
+          durationWeeks: bookingDetails.subscriptionData.durationWeeks,
+          price: bookingDetails.route.price
+        };
+        setCurrentTicket(subscriptionTicket);
+        setCurrentScreen('ticket');
+        setNavigationHistory(prev => [...prev, currentScreen]);
         setCurrentSubscriptionData(null);
       } else {
         const ticket: TicketType = {

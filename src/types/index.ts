@@ -52,6 +52,10 @@ export interface Ticket {
   status: 'confirmed' | 'delayed' | 'cancelled';
   delayMinutes?: number;
   barcode: string;
+  isSubscription?: boolean;
+  endDate?: string;
+  durationWeeks?: number;
+  price?: number;
 }
 
 export interface UserProfile {
