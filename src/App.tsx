@@ -117,9 +117,8 @@ function AppContent() {
     if (selectedRoute) {
       if (currentSubscriptionData) {
         const basePrice = selectedRoute.price;
-        const tripsPerWeek = 10;
-        const totalTrips = tripsPerWeek * currentSubscriptionData.durationWeeks;
-        const subscriptionPrice = Math.round(basePrice * totalTrips * 0.95);
+        const weeksMultiplier = 6;
+        const subscriptionPrice = Math.round(basePrice * currentSubscriptionData.durationWeeks * weeksMultiplier);
 
         const booking: BookingDetails = {
           route: selectedRoute,

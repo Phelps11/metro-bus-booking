@@ -146,7 +146,7 @@ export const Payment: React.FC<PaymentProps> = ({
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3">
                     <div className="text-sm font-medium text-blue-800 mb-1">Route Subscription</div>
                     <div className="text-xs text-blue-600">
-                      {bookingDetails.subscriptionData?.durationWeeks} weeks of unlimited travel
+                      {bookingDetails.subscriptionData?.durationWeeks} weeks subscription pass
                     </div>
                   </div>
                   <div className="flex justify-between">
@@ -161,6 +161,14 @@ export const Payment: React.FC<PaymentProps> = ({
                     <span>Duration:</span>
                     <span className="font-medium">{bookingDetails.subscriptionData?.durationWeeks} weeks</span>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Single Trip Price:</span>
+                    <span>₦{bookingDetails.route.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-gray-600">
+                    <span>Value equivalent:</span>
+                    <span>~{(bookingDetails.subscriptionData?.durationWeeks || 0) * 6} trips</span>
+                  </div>
                   <div className="flex justify-between">
                     <span>Start Date:</span>
                     <span className="font-medium">{new Date(bookingDetails.subscriptionData?.startDate || '').toLocaleDateString()}</span>
@@ -170,7 +178,7 @@ export const Payment: React.FC<PaymentProps> = ({
                     <span className="font-medium">{new Date(bookingDetails.subscriptionData?.endDate || '').toLocaleDateString()}</span>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-2 text-xs text-green-700">
-                    5% discount applied on subscription
+                    Save money with subscription pricing
                   </div>
                 </>
               ) : (
