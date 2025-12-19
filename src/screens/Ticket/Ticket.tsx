@@ -11,9 +11,10 @@ interface TicketProps {
   onBack: () => void;
   onHome?: () => void;
   onNavigate?: (screen: string) => void;
+  onTrackBus?: () => void;
 }
 
-export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNavigate }) => {
+export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNavigate, onTrackBus }) => {
   return (
     <MobileLayout
       showBottomNav={true}
@@ -256,8 +257,12 @@ export const Ticket: React.FC<TicketProps> = ({ ticket, onBack, onHome, onNaviga
           <Button variant="outline" className="py-3">
             Contact Support
           </Button>
-          <Button className="bg-green-600 hover:bg-green-700 py-3">
-            Track Bus
+          <Button
+            onClick={onTrackBus}
+            className="bg-green-600 hover:bg-green-700 py-3"
+            disabled={ticket.isSubscription}
+          >
+            {ticket.isSubscription ? 'N/A for Pass' : 'Track Bus'}
           </Button>
         </div>
       </div>

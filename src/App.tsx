@@ -19,9 +19,10 @@ import { HybridBooking } from './screens/HybridBooking/HybridBooking';
 import { HybridPayment } from './screens/HybridPayment/HybridPayment';
 import { HybridTickets } from './screens/HybridTickets/HybridTickets';
 import { Discover } from './screens/Discover';
+import { TrackBus } from './screens/TrackBus';
 import { Route, PassengerDetails as PassengerDetailsType, BookingDetails, Ticket as TicketType, RouteSubscription } from './types';
 
-type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'reset-password-demo' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets';
+type Screen = 'login' | 'signup' | 'onboarding' | 'reset-password' | 'reset-password-demo' | 'home' | 'search-results' | 'passenger-details' | 'payment' | 'ticket' | 'profile' | 'trips' | 'discover' | 'subscription-payment' | 'hybrid-booking' | 'hybrid-payment' | 'hybrid-tickets' | 'track-bus';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -324,9 +325,23 @@ function AppContent() {
             onBack={handleBackNavigation}
             onNavigate={handleNavigation}
             onHome={handleHomeNavigation}
+            onTrackBus={() => {
+              setCurrentScreen('track-bus');
+              setNavigationHistory(prev => [...prev, currentScreen]);
+            }}
           />
         ) : null;
-      
+
+      case 'track-bus':
+        return currentTicket ? (
+          <TrackBus
+            ticket={currentTicket}
+            onBack={handleBackNavigation}
+            onNavigate={handleNavigation}
+            onHome={handleHomeNavigation}
+          />
+        ) : null;
+
       case 'profile':
         return (
           <Profile
