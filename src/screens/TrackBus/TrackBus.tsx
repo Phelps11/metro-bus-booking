@@ -361,7 +361,7 @@ export const TrackBus: React.FC<TrackBusProps> = ({ ticket, onBack, onHome, onNa
                     <BellOff size={20} className="text-gray-400" />
                   )}
                   <span className="text-sm font-medium text-gray-700">
-                    Notify when bus is 10 minutes away
+                    Notify when bus is 5 minutes away
                   </span>
                 </div>
                 <div className={`w-12 h-6 rounded-full transition-colors ${
