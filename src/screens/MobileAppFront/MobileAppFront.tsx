@@ -142,25 +142,38 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
       }
 
       try {
-        const { data, error } = await supabase
-          .from('routes')
+        const { data: routesData, error: routesError } = await supabase
+          .from('rider_routes')
           .select('*')
           .eq('from_location', searchForm.from)
-          .eq('to_location', searchForm.to);
+          .eq('to_location', searchForm.to)
+          .eq('status', 'active');
 
-        if (error) throw error;
+        if (routesError) throw routesError;
 
-        if (data && data.length > 0) {
-          const formattedRoutes: Route[] = data.map((route: any) => ({
-            id: route.id,
-            from: route.from_location,
-            to: route.to_location,
-            duration: route.duration,
-            price: route.price,
-            departureTime: route.departure_time,
-            arrivalTime: route.arrival_time,
-            availableSeats: route.available_seats
-          }));
+        if (routesData && routesData.length > 0) {
+          const routeIds = routesData.map(r => r.id);
+
+          const { data: manifests } = await supabase
+            .from('trip_manifests')
+            .select('*')
+            .in('route_id', routeIds)
+            .eq('trip_date', searchForm.date)
+            .eq('status', 'scheduled');
+
+          const formattedRoutes: Route[] = routesData.map((route: any) => {
+            const manifest = manifests?.find(m => m.route_id === route.id);
+            return {
+              id: route.id,
+              from: route.from_location,
+              to: route.to_location,
+              duration: route.duration,
+              price: route.price,
+              departureTime: manifest?.departure_time || route.departure_time,
+              arrivalTime: manifest?.arrival_time || route.arrival_time,
+              availableSeats: manifest?.available_seats ?? route.available_seats
+            };
+          });
 
           setAvailableBuses(formattedRoutes);
           setSearchPerformed(true);
@@ -188,42 +201,51 @@ export const MobileAppFront: React.FC<MobileAppFrontProps> = ({ onNavigate, onBa
     }
   };
 
-  // Handle route click - automatically search for next working day
   const handleRouteClick = async (route: { from: string; to: string; display: string }) => {
     const nextWorkingDay = getNextWorkingDay();
     const nextWorkingDayString = formatDateForInput(nextWorkingDay);
 
-    // Update search form with selected route and next working day
     setSearchForm({
       from: route.from,
       to: route.to,
       date: nextWorkingDayString
     });
 
-    // Clear any existing date errors
     setDateError('');
 
-    // Fetch routes from Supabase
     try {
-      const { data, error } = await supabase
-        .from('routes')
+      const { data: routesData, error: routesError } = await supabase
+        .from('rider_routes')
         .select('*')
         .eq('from_location', route.from)
-        .eq('to_location', route.to);
+        .eq('to_location', route.to)
+        .eq('status', 'active');
 
-      if (error) throw error;
+      if (routesError) throw routesError;
 
-      if (data && data.length > 0) {
-        const formattedRoutes: Route[] = data.map((r: any) => ({
-          id: r.id,
-          from: r.from_location,
-          to: r.to_location,
-          duration: r.duration,
-          price: r.price,
-          departureTime: r.departure_time,
-          arrivalTime: r.arrival_time,
-          availableSeats: r.available_seats
-        }));
+      if (routesData && routesData.length > 0) {
+        const routeIds = routesData.map(r => r.id);
+
+        const { data: manifests } = await supabase
+          .from('trip_manifests')
+          .select('*')
+          .in('route_id', routeIds)
+          .eq('trip_date', nextWorkingDayString)
+          .eq('status', 'scheduled');
+
+        const formattedRoutes: Route[] = routesData.map((r: any) => {
+          const manifest = manifests?.find(m => m.route_id === r.id);
+          return {
+            id: r.id,
+            from: r.from_location,
+            to: r.to_location,
+            duration: r.duration,
+            price: r.price,
+            departureTime: manifest?.departure_time || r.departure_time,
+            arrivalTime: manifest?.arrival_time || r.arrival_time,
+            availableSeats: manifest?.available_seats ?? r.available_seats
+          };
+        });
 
         setAvailableBuses(formattedRoutes);
         setSearchPerformed(true);
