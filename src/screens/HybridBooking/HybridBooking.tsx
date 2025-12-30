@@ -81,10 +81,11 @@ export const HybridBooking: React.FC<HybridBookingProps> = ({ onBack, onContinue
       setLoading(true);
       try {
         const { data, error } = await supabase
-          .from('routes')
+          .from('rider_routes')
           .select('*')
           .eq('from_location', searchForm.from)
-          .eq('to_location', searchForm.to);
+          .eq('to_location', searchForm.to)
+          .eq('status', 'active');
 
         if (error) {
           console.error('Error fetching routes:', error);

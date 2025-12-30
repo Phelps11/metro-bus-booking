@@ -24,8 +24,9 @@ export const Discover: React.FC<DiscoverProps> = ({ activeScreen, onNavigate, on
   const fetchRoutes = async () => {
     try {
       const { data, error } = await supabase
-        .from('routes')
+        .from('rider_routes')
         .select('*')
+        .eq('status', 'active')
         .order('created_at', { ascending: true });
 
       if (error) throw error;
